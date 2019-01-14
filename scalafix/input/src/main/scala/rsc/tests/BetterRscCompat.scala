@@ -94,4 +94,21 @@ object BetterRscCompat_Test {
     val v2 = new oa.oe.MyClass2
     val w2 = new v2.Inner
   }
+
+  object ClassLinearization {
+
+    trait MyTrait1 {
+      class MyInnerClass1
+
+      def foo = new MyInnerClass1
+    }
+
+    trait MyTrait2 extends MyTrait1
+
+    object myobj extends MyTrait2 {
+      def bar = foo
+    }
+
+    val baz = myobj.bar
+  }
 }
