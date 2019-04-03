@@ -12,6 +12,7 @@ import scala.meta.internal.{semanticdb => s}
 import scala.meta.internal.semanticdb.Scala._
 import scala.meta.internal.semanticdb.Scala.{Descriptor => d}
 import scala.meta.internal.semanticdb.Scala.{Names => n}
+import scalafix.internal.util.TypeExtractors
 import scalafix.internal.v0._
 
 class SemanticdbPrinter(
@@ -56,13 +57,15 @@ class SemanticdbPrinter(
                   pprint(" => ")
                   pprint(args.last)
                   return
-                } else if (args.size == 1){
+                } else if (args.size == 1) {
                   pprint("() => ")
                   pprint(args.last)
                   return
-                } else if (args.headOption.collect {
-                  case s.TypeRef(_, sym1, _) => isFunc(sym1)
-                }.getOrElse(false)) {
+                } else if (args.headOption
+                             .collect {
+                               case s.TypeRef(_, sym1, _) => isFunc(sym1)
+                             }
+                             .getOrElse(false)) {
                   rep("(", args.headOption, ", ", ")")(normal)
                   pprint(" => ")
                   pprint(args.last)
@@ -169,9 +172,21 @@ class SemanticdbPrinter(
               rep(" ", anns, " ", "")(pprint)
           }
         case s.ExistentialType(utpe, decls) =>
-          decls.infos.foreach(symbols.append)
+          val infos = decls.infos
+          infos.foreach(symbols.append)
+          if (infos.length == 1) {
+            infos.head.signature match {
+              case s.TypeSignature(_, TypeExtractors.Nothing(), TypeExtractors.Any()) =>
+                utpe match {
+                  case s.TypeRef(s.NoType, sym1, typeArguments) if typeArguments.length == 1 =>
+                    pprint(sym1)
+                    str("[_]")
+                    return
+                }
+            }
+          }
           opt(utpe)(normal)
-          rep(" forSome { ", decls.infos, "; ", " }")(pprint)
+          rep(" forSome { ", infos, "; ", " }")(pprint)
         case s.UniversalType(tparams, utpe) =>
           // FIXME: https://github.com/twitter/rsc/issues/150
           str("({ type λ")

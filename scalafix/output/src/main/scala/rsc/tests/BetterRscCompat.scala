@@ -268,4 +268,8 @@ object BetterRscCompat_Test {
     val f6: (Int => Int => Int) => Int => Int = (f: Int => (Int => Int)) => (x: Int) => x
     val f7: ((Int => od.MyClass) => Int, String => String) => ((Int => od.MyClass) => Int, (Int, String) => String, od.MyClass) = (f: (Int => od.MyClass) => Int, g: String => String) => (f, (x: Int, y: String) => g(y), new od.MyClass)
   }
+
+  object WildcardExistentials {
+    def wildcard: Class[_] = implicitly[Manifest[String]].runtimeClass
+  }
 }
