@@ -253,4 +253,8 @@ object BetterRscCompat_Test {
       }
     }
   }
+
+  object Tuples {
+    val t = Option((Option((1, "2")), 3))
+  }
 }

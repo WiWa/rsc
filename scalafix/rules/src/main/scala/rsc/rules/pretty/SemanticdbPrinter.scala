@@ -39,6 +39,15 @@ class SemanticdbPrinter(
             str(" => ")
             normal(ret)
           } else {
+            if (config.better) {
+              val tupleRegex22 = "scala/Tuple([2-9]|1[0-9]|21|22)#".r
+              tupleRegex22.findPrefixOf(sym) match {
+                case Some(_) =>
+                  rep("(", args, ", ", ")")(normal)
+                  return
+                case _ => ()
+              }
+            }
             // TODO: At the moment, we return None for local symbols, since they don't have a desc.
             // The logic to improve on this is left for future work.
             val name = sym.desc match {
