@@ -47,6 +47,33 @@ class SemanticdbPrinter(
                   return
                 case _ => ()
               }
+              def isFunc(sym1: String): Boolean =
+                "scala/Function([0-9]|1[0-9]|21|22)#".r.findPrefixOf(sym1).isDefined
+
+              if (isFunc(sym)) {
+                if (args.size > 2) {
+                  rep("(", args.init, ", ", ")")(normal)
+                  pprint(" => ")
+                  pprint(args.last)
+                  return
+                } else if (args.size == 1){
+                  pprint("() => ")
+                  pprint(args.last)
+                  return
+                } else if (args.headOption.collect {
+                  case s.TypeRef(_, sym1, _) => isFunc(sym1)
+                }.getOrElse(false)) {
+                  rep("(", args.headOption, ", ", ")")(normal)
+                  pprint(" => ")
+                  pprint(args.last)
+                  return
+                } else {
+                  pprint(args.head)
+                  pprint(" => ")
+                  pprint(args.last)
+                  return
+                }
+              }
             }
             // TODO: At the moment, we return None for local symbols, since they don't have a desc.
             // The logic to improve on this is left for future work.

@@ -257,4 +257,14 @@ object BetterRscCompat_Test {
   object Tuples {
     val t = Option((Option((1, "2")), 3))
   }
+
+  object Functions {
+    val f1 = () => 1
+    val f2 = (x: Int) => x
+    val f3 = (f: Int => Int) => f(1)
+    val f4 = (f: Int => Int) => f
+    val f5 = (f: (Int => Int) => Int) => (x: Int) => x
+    val f6 = (f: Int => (Int => Int)) => (x: Int) => x
+    val f7 = (f: (Int => od.MyClass) => Int, g: String => String) => (f, (x: Int, y: String) => g(y), new od.MyClass)
+  }
 }
