@@ -343,14 +343,7 @@ final class Synthesizer private (
   private def caseClassCopy(env: Env, tree: DefnClass): Unit = {
     if (!tree.hasAbstract && !tree.primaryCtor.get.hasRepeated) {
       val id = TermId("copy")
-      val tparams = tree.tparams.map { tp =>
-        val mods = Mods(Nil)
-        val id = TptId(tp.id.valueopt.get).withPos(tp.id.pos)
-        val lbound = tp.lbound.map(_.dupe)
-        val ubound = tp.ubound.map(_.dupe)
-        val tparam = TypeParam(mods, id, Nil, lbound, ubound, Nil, Nil)
-        tparam.withPos(tp.pos)
-      }
+      val tparams = tree.tparams.map(synthesizeTparam)
       val primaryCtor = tree.primaryCtor.get
       val desugaredParamss = symtab.desugars.paramss.getOrElse(primaryCtor, primaryCtor.paramss)
 
@@ -378,14 +371,7 @@ final class Synthesizer private (
         case (param, i) =>
           val mods = Mods(Nil)
           val id = TermId("copy$default$" + (i + 1))
-          val tparams = tree.tparams.map { tp =>
-            val mods = Mods(Nil)
-            val id = TptId(tp.id.valueopt.get).withPos(tp.id.pos)
-            val lbound = tp.lbound.map(_.dupe)
-            val ubound = tp.ubound.map(_.dupe)
-            val tparam = TypeParam(mods, id, Nil, lbound, ubound, Nil, Nil)
-            tparam.withPos(tp.pos)
-          }
+          val tparams = tree.tparams.map(synthesizeTparam)
           val ret = {
             val annotSym = UncheckedVarianceClass
             val annotTpt = TptId("uncheckedVariance").withSym(annotSym)
@@ -466,14 +452,7 @@ final class Synthesizer private (
   private def caseClassCompanionApply(env: Env, tree: DefnClass): Unit = {
     if (!tree.hasAbstract) {
       val id = TermId("apply")
-      val tparams = tree.tparams.map { tp =>
-        val mods = Mods(Nil)
-        val id = TptId(tp.id.valueopt.get).withPos(tp.id.pos)
-        val lbound = tp.lbound.map(_.dupe)
-        val ubound = tp.ubound.map(_.dupe)
-        val tparam = TypeParam(mods, id, Nil, lbound, ubound, Nil, Nil)
-        tparam.withPos(tp.pos)
-      }
+      val tparams = tree.tparams.map(synthesizeTparam)
       var hasDefaultParams = false
       val primaryCtor = tree.primaryCtor.get
       val desugaredParamss = symtab.desugars.paramss.getOrElse(primaryCtor, primaryCtor.paramss)
@@ -506,14 +485,7 @@ final class Synthesizer private (
         if (tree.primaryCtor.get.hasRepeated) TermId("unapplySeq")
         else TermId("unapply")
       }
-      val tparams = tree.tparams.map { tp =>
-        val mods = Mods(Nil)
-        val id = TptId(tp.id.valueopt.get).withPos(tp.id.pos)
-        val lbound = tp.lbound.map(_.dupe)
-        val ubound = tp.ubound.map(_.dupe)
-        val tparam = TypeParam(mods, id, Nil, lbound, ubound, Nil, Nil)
-        tparam.withPos(tp.pos)
-      }
+      val tparams = tree.tparams.map(synthesizeTparam)
       val paramss = {
         val tpt = {
           val core = tree.id
@@ -707,6 +679,16 @@ final class Synthesizer private (
     val rhs = Some(TermStub())
     val method = DefnMethod(Mods(Nil), id, Nil, paramss, ret, rhs)
     scheduler(env, method.withPos(tree.pos))
+  }
+
+  private def synthesizeTparam(tp: TypeParam): TypeParam = {
+    val mods = Mods(Nil)
+    val id = TptId(tp.id.valueopt.getOrElse("_")).withPos(tp.id.pos)
+    val lbound = tp.lbound.map(_.dupe)
+    val ubound = tp.ubound.map(_.dupe)
+    val innerTparams = tp.tparams.map(synthesizeTparam)
+    val tparam = TypeParam(mods, id, innerTparams, lbound, ubound, Nil, Nil)
+    tparam.withPos(tp.pos)
   }
 }
 
