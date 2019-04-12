@@ -19,6 +19,9 @@ trait Desugars {
         paramss
       }
 
+      def get(outline: Parameterized): Option[List[List[Param]]] =
+        Option(paramssDesugars.get(outline))
+
       def contains(outline: Parameterized): Boolean = {
         paramssDesugars.containsKey(outline)
       }
