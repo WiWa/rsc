@@ -19,6 +19,10 @@ trait Desugars {
         paramss
       }
 
+      def getOrElse(outline: Parameterized, default: List[List[Param]]): List[List[Param]] = {
+        paramssDesugars.getOrDefault(outline, default)
+      }
+
       def contains(outline: Parameterized): Boolean = {
         paramssDesugars.containsKey(outline)
       }
