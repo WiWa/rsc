@@ -459,7 +459,12 @@ final class Scheduler private (
         companionClass match {
           case Some(caseClass: DefnClass) if caseClass.hasCase =>
             if (tree.isSynthetic && !caseClass.hasAbstract) {
-              (caseClass.tparams, caseClass.primaryCtor.get.paramss) match {
+
+              val primaryCtor = caseClass.primaryCtor.get
+              val desugaredParamss = symtab.desugars.paramss
+                .getOrElse(primaryCtor, primaryCtor.paramss)
+
+              (caseClass.tparams, desugaredParamss) match {
                 case (Nil, List(params)) if params.length <= 22 =>
                   val sym = AbstractFunctionClass(params.length)
                   val core = TptId(sym.desc.value).withSym(sym)

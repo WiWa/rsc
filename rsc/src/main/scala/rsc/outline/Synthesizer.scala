@@ -479,7 +479,10 @@ final class Synthesizer private (
   }
 
   private def caseClassCompanionUnapply(env: Env, tree: DefnClass): Unit = {
-    val params = tree.primaryCtor.get.paramss.headOption.getOrElse(Nil)
+    val primaryCtor = tree.primaryCtor.get
+    val desugaredParamss = symtab.desugars.paramss.getOrElse(primaryCtor, primaryCtor.paramss)
+
+    val params = desugaredParamss.headOption.getOrElse(Nil)
     if (params.length <= 22) {
       val id = {
         if (tree.primaryCtor.get.hasRepeated) TermId("unapplySeq")
@@ -502,9 +505,11 @@ final class Synthesizer private (
         }
       }
       val ret = {
-        val params = tree.primaryCtor.get.paramss.headOption.getOrElse(Nil)
+        val params = desugaredParamss.headOption.getOrElse(Nil)
         params match {
-          case Nil =>
+          // if we have an implicit parameter (and thus an implicit parameter list),
+          // then that apparently also creates a Boolean unapply
+          case params if params == Nil =>
             Some(TptId("Boolean").withSym(BooleanClass))
           case List(param) =>
             val option = TptId("Option").withSym(OptionClass)
