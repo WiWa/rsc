@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION="0.9.1"
+VERSION="0.9.4"
 CACHE="$HOME/.scalafix"
 COURSIER="$CACHE/coursier"
 SCALAFIX="$CACHE/scalafix-$VERSION"
