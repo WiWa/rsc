@@ -48,16 +48,28 @@ trait Params {
             symtab.metadata(baseSym) match {
               case OutlineMetadata(baseOutline: DefnMethod) =>
                 baseOutline.desugaredParamss match {
-                  case List() => false
-                  case List(List()) => true
-                  case _ => overridesNonNullary(tree, parent)
+                  case List() =>
+                    parent match {
+                      case scope: TemplateScope if scope.tree.mods.hasTrait =>
+                        return false
+                      case _ => false
+                    }
+                  case List(List()) =>
+                    true
+                  case _ =>
+                    overridesNonNullary(tree, parent)
                 }
               case ClasspathMetadata(baseInfo) =>
                 baseInfo.signature match {
                   case s.MethodSignature(_, paramss, _) =>
                     paramss match {
                       case Seq() => false
-                      case Seq(params) if params.symbols.isEmpty => true
+                      case Seq(params) if params.symbols.isEmpty =>
+                        scope match {
+                          case scope: TemplateScope if scope.tree.mods.hasTrait && !tree.hasOverride =>
+                            false
+                          case _ => true
+                        }
                       case _ => overridesNonNullary(tree, parent)
                     }
                   case _ =>

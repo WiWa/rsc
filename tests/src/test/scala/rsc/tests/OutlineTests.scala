@@ -22,7 +22,9 @@ class OutlineTests extends RscTests {
 
   test("outline for semantic") {
     val reporter = Reporter()
-    val settings = Settings(semanticClasspath, semanticFiles, quiet = true)
+    val settings = Settings(semanticClasspath, semanticFiles
+//      .filter(_.endsWith("tests.scala"))
+      , quiet = true)
     val problems = Main.process(reporter, settings)
     if (problems.nonEmpty) fail()
   }

@@ -496,8 +496,9 @@ final class Synthesizer private (
         List(List(param.withPos(tree.pos)))
       }
       def paramTpt(param: Param): Tpt = {
+        val seqClass = if (settings.abi == Abi211) SeqClass else "scala/package.Seq#"
         param.tpt.get match {
-          case TptRepeat(tpt) => TptParameterize(TptId("Seq").withSym(SeqClass), List(tpt.dupe))
+          case TptRepeat(tpt) => TptParameterize(TptId("Seq").withSym(seqClass), List(tpt.dupe))
           case tpt => tpt.dupe
         }
       }

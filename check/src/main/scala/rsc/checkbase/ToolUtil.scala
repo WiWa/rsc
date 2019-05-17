@@ -89,7 +89,7 @@ trait ToolUtil extends CacheUtil with NscUtil {
     import _root_.rsc.settings._
     val artifacts = List(ArtifactSemanticdb, ArtifactScalasig)
     val out = Files.createTempDirectory("rsc_")
-    val settings = Settings(artifacts = artifacts, cp = classpath, d = out, ins = sources)
+    val settings = Settings(artifacts = artifacts, cp = classpath, d = out, ins = sources, abi = Abi212)
     val reporter = StoreReporter(settings)
     val compiler = Compiler(settings, reporter)
     try {
