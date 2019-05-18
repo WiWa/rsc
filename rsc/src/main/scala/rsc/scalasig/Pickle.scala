@@ -1049,18 +1049,22 @@ class Pickle private (settings: Settings, mtab: Mtab, sroot1: String, sroot2: St
     }
     def svalField(sgetterSym: String): s.SymbolInformation = {
       val noGetter = sgetterSym.isPrivateThis && !sgetterSym.isLazy
+      val tspec = sgetterSym.owner.isTrait && noGetter
       val sfieldName = {
         if (noGetter) sgetterSym.desc.value
         else sgetterSym.desc.value + " "
       }
-      val sfieldSym = Symbols.Global(sgetterSym.owner, d.Term(sfieldName))
+      val sfieldSym = if (tspec) Symbols.Global(sgetterSym.owner, d.Method(sfieldName, "()")) else Symbols.Global(sgetterSym.owner, d.Term(sfieldName))
       var sfieldProps = p.VAL.value
       if (noGetter && sgetterSym.isImplicit) sfieldProps |= p.IMPLICIT.value
       if (sgetterSym.isFinal) sfieldProps |= p.FINAL.value
       if (sgetterSym.isLazy) sfieldProps |= (p.LAZY.value | p.VAR.value)
       val sfieldSig = {
         sgetterSym.ssig match {
-          case NullaryMethodSig(stpe) => s.ValueSignature(stpe)
+          case NullaryMethodSig(stpe) if tspec =>
+            s.MethodSignature(None, Nil, stpe)
+          case NullaryMethodSig(stpe) =>
+            s.ValueSignature(stpe)
           case MethodSig(params, stpe) if params.symbols.isEmpty => s.ValueSignature(stpe)
           case sother => crash(sother.toString)
         }
@@ -1075,7 +1079,7 @@ class Pickle private (settings: Settings, mtab: Mtab, sroot1: String, sroot2: St
       s.SymbolInformation(
         symbol = sfieldSym,
         language = l.SCALA,
-        kind = k.FIELD,
+        kind = if (tspec) k.METHOD else k.FIELD,
         properties = sfieldProps,
         displayName = sfieldName,
         signature = sfieldSig,
