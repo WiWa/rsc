@@ -24,7 +24,7 @@ final class JarDiff(files: List[List[Path]], config: JarDiff.Config, renderers: 
     val git: Git =
       Git.init.setDirectory(targetBase.toFile).call
 
-    def renderAndCommit(fs: List[Path]): RevCommit = {
+    def removeFiles(): Unit = {
       // FIXME: https://github.com/twitter/rsc/issues/323
       // git.rm().addFilepattern(".").call()
       val rm = git.rm()
@@ -49,6 +49,10 @@ final class JarDiff(files: List[List[Path]], config: JarDiff.Config, renderers: 
         }
       })
       if (actionable) rm.call()
+    }
+
+    def renderAndCommit(fs: List[Path]): RevCommit = {
+      removeFiles()
 
       for (f <- fs) {
         val root = IOUtil.rootPath(f)
@@ -61,6 +65,7 @@ final class JarDiff(files: List[List[Path]], config: JarDiff.Config, renderers: 
       git.add().addFilepattern(".").call()
       git.commit().setMessage("jardiff textified output of: " + fs.mkString(File.pathSeparator)).call()
     }
+
     files match {
       case head :: Nil =>
         val commit = renderAndCommit(head)

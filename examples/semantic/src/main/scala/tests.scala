@@ -42,11 +42,4 @@ object O {
   }
 }
 
-class STC2 extends STC {
-  println(serialized(1))
-
-  override def asdf = {
-    super.asdf
-    "as"
-  }
-}
+class D extends C
