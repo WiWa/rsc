@@ -43,3 +43,7 @@ package tickettests
 //}
 
 class D extends C
+
+trait TT {
+  private[this] var x: Int = 0
+}
