@@ -1,5 +1,7 @@
 package tickettests
 
+import java.util.concurrent.atomic.AtomicInteger
+
 trait T {
   def toString: String
 }
@@ -37,5 +39,14 @@ object O {
 
   class C private[O](x: Int = 0, val y: C7 = new C7) {
     private[O] def foo(x: Int = 0): Nothing = ???
+  }
+}
+
+class STC2 extends STC {
+  println(serialized(1))
+
+  override def asdf = {
+    super.asdf
+    "as"
   }
 }
