@@ -1058,7 +1058,9 @@ class Pickle private (settings: Settings, mtab: Mtab, sroot1: String, sroot2: St
         if (noGetter) sgetterSym.desc.value
         else sgetterSym.desc.value + " "
       }
-      val sfieldSym = if (tspec) Symbols.Global(sgetterSym.owner, d.Method(sfieldName, "()")) else Symbols.Global(sgetterSym.owner, d.Term(sfieldName))
+      val sfieldSym =
+        if (tspec) Symbols.Global(sgetterSym.owner, d.Method(sfieldName, "()"))
+        else Symbols.Global(sgetterSym.owner, d.Term(sfieldName))
       var sfieldProps = if (sgetterSym.isStable) p.VAL.value else p.VAR.value
       if (noGetter && sgetterSym.isImplicit) sfieldProps |= p.IMPLICIT.value
       if (sgetterSym.isFinal) sfieldProps |= p.FINAL.value
@@ -1098,7 +1100,9 @@ class Pickle private (settings: Settings, mtab: Mtab, sroot1: String, sroot2: St
         else if (ssetterSym.isPrivateThis) ssetterSym.desc.value.stripSuffix("_=")
         else ssetterSym.desc.value.stripSuffix("_=") + " "
       }
-      val sfieldSym = if (tspec) Symbols.Global(ssetterSym.owner, d.Method(sfieldName, "()")) else Symbols.Global(ssetterSym.owner, d.Term(sfieldName))
+      val sfieldSym =
+        if (tspec) Symbols.Global(ssetterSym.owner, d.Method(sfieldName, "()"))
+        else Symbols.Global(ssetterSym.owner, d.Term(sfieldName))
       var sfieldProps = p.VAR.value
       if (ssetterSym.isFinal) sfieldProps |= p.FINAL.value
       val sfieldSig = {
@@ -1107,11 +1111,12 @@ class Pickle private (settings: Settings, mtab: Mtab, sroot1: String, sroot2: St
             val List(sparam) = sscope.symbols
             sparam.ssig match {
               case NoSig => s.NoSignature
-              case ValueSig(stpe) if tspec => s.MethodSignature(
-                None,
-                List(s.Scope(List(Symbols.Global(ssetterSym, d.Parameter("x$1"))))),
-                s.TypeRef(s.NoType, UnitClass, Nil)
-              )
+              case ValueSig(stpe) if tspec =>
+                s.MethodSignature(
+                  None,
+                  List(s.Scope(List(Symbols.Global(ssetterSym, d.Parameter("x$1"))))),
+                  s.TypeRef(s.NoType, UnitClass, Nil)
+                )
               case ValueSig(stpe) => s.ValueSignature(stpe)
               case sother => crash(sother.toString)
             }

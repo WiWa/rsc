@@ -66,7 +66,8 @@ trait Params {
                       case Seq() => false
                       case Seq(params) if params.symbols.isEmpty =>
                         scope match {
-                          case scope: TemplateScope if scope.tree.mods.hasTrait && !tree.hasOverride =>
+                          case scope: TemplateScope
+                              if scope.tree.mods.hasTrait && !tree.hasOverride =>
                             false
                           case _ => true
                         }

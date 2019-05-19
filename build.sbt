@@ -1,6 +1,6 @@
 lazy val V = new {
   val asm = "6.0"
-  val scala = "2.12.8"//computeScalaVersionFromTravisYml("2.11")
+  val scala = "2.12.7" //computeScalaVersionFromTravisYml("2.11")
   val scalafix = computeScalafixVersionFromBinScalafix()
   val scalameta = "4.1.4"
   val scalatest = "3.0.5"

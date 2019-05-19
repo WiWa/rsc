@@ -66,6 +66,7 @@ class ScalametaTests extends RscTests {
           numProblems += 1
       }
     }
+    println(scalasigActuals.get(scalasigExpects.keys.head))
     scalasigExpects.foreach {
       case (scalasigName, pathsExpect) =>
         scalasigActuals.get(scalasigName) match {
