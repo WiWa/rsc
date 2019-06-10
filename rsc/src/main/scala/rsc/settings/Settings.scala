@@ -4,6 +4,7 @@ package rsc.settings
 
 import java.io._
 import java.nio.file._
+import rsc.classpath.Classpath
 import scala.meta.internal.semanticdb.Scala.Descriptor
 import scala.meta.scalasig.lowlevel.Name
 
@@ -17,11 +18,13 @@ final case class Settings(
     notypeWarn: Boolean = false,
     xprint: Set[String] = Set[String](),
     ystopAfter: Set[String] = Set[String](),
-    dcache: java.util.HashMap[String, (Descriptor, String)] =
-      new java.util.HashMap[String, (Descriptor, String)](),
+    dcache: java.util.concurrent.ConcurrentHashMap[String, (Descriptor, String)] =
+      new java.util.concurrent.ConcurrentHashMap[String, (Descriptor, String)](),
     cacheSymIsEmbedded: java.util.HashMap[String, Boolean] = new java.util.HashMap[String, Boolean](),
     ncache: java.util.HashMap[String, Name] =
       new java.util.HashMap[String, Name](),
+    classPaths: java.util.concurrent.ConcurrentHashMap[String, Classpath] =
+      new java.util.concurrent.ConcurrentHashMap[String, Classpath]
 
 )
 

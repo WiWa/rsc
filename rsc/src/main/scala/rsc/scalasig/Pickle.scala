@@ -502,9 +502,9 @@ final class Pickle private (settings: Settings, mtab: Mtab, sroot1: String, sroo
     Scalasig(name, source, entries)
   }
 
-  private val cacheSymIsEmbedded = settings.cacheSymIsEmbedded
+  private val cacheSymIsEmbedded = new java.util.HashMap[String, Boolean]
   private val cacheSymIsToplevel = new java.util.HashMap[String, Boolean]
-  private val cacheSymName = settings.ncache
+  private val cacheSymName = new java.util.HashMap[String, Name]
 
   private final implicit class SymbolOps(ssym: String) {
     def isExternal: Boolean = {

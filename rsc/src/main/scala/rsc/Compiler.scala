@@ -26,7 +26,12 @@ class Compiler(val settings: Settings, val reporter: Reporter) extends AutoClose
 
   var trees: List[Source] = Nil
   var gensyms: Gensyms = Gensyms()
-  var classpath: Classpath = profile(settings, reporter, "classpath") { Classpath(settings.cp) }
+  var classpath: Classpath = settings.classPaths.synchronized {
+    profile(settings, reporter, "classpath") {
+      val k = settings.cp.map(_.toString).mkString(":")
+      settings.classPaths.computeIfAbsent(k, _ => Classpath(settings.cp))
+    }
+  }
   var symtab: Symtab = Symtab(classpath)
   var todo: Todo = Todo()
   var infos: Infos = Infos(classpath)
