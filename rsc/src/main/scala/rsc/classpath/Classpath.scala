@@ -4,11 +4,14 @@
 package rsc.classpath
 
 import java.nio.file._
+import java.util
 import java.util.HashMap
 import rsc.classpath.javacp._
 import rsc.classpath.scalacp._
+import rsc.report.VerboseMessage
 import rsc.semantics._
 import rsc.util._
+import scala.collection.mutable
 import scala.meta.internal.{semanticdb => s}
 import scala.meta.internal.semanticdb.{Language => l}
 // import scala.meta.internal.semanticdb.Scala._
@@ -17,11 +20,14 @@ import scala.meta.scalasig._
 import scala.meta.scalasig.lowlevel._
 
 final class Classpath private (index: Index) extends AutoCloseable {
+  var time = 0L
   private val infos = new HashMap[String, s.SymbolInformation]
+  private val pathsDone = new mutable.HashSet[String]
   Scalalib.synthetics.foreach(info => infos.put(info.symbol, info))
   Scalalib.packages.foreach(info => infos.put(info.symbol, info))
+  println("asdf", infos.containsKey("scala/AnyRef#"))
 
-  def contains(sym: String): Boolean = {
+  def contains(sym: String): Boolean = this.synchronized {
     if (infos.containsKey(sym)) {
       true
     } else {
@@ -30,7 +36,7 @@ final class Classpath private (index: Index) extends AutoCloseable {
     }
   }
 
-  def apply(sym: String): s.SymbolInformation = {
+  def apply(sym: String): s.SymbolInformation = this.synchronized {
     val info = infos.get(sym)
     if (info != null) {
       info
@@ -38,11 +44,17 @@ final class Classpath private (index: Index) extends AutoCloseable {
       load(sym)
       val info = infos.get(sym)
       if (info != null) info
-      else crash(sym)
+      else {
+        println("wtf", s"\'$sym\'", infos.containsKey(sym))
+        crash(sym)
+      }
     }
   }
 
-  private def load(sym: String): Unit = {
+  private def load(sym: String): Unit = this.synchronized {
+//    if (sym == "scala/AnyRef#") {
+//      println("fdsa")
+//    }
     val info = infos.get(sym)
     if (info == null) {
       if (sym.hasLoc) {
@@ -77,16 +89,34 @@ final class Classpath private (index: Index) extends AutoCloseable {
         else ()
       }
     }
+//    else {
+//      if (sym == "scala/AnyRef#") {
+//        println("fdsa2")
+//      }
+//    }
   }
 
-  def close(): Unit = {
+  def close(): Unit = this.synchronized {
     index.close()
+  }
+
+  def go(paths: List[Path]): Unit = this.synchronized {
+    val s = System.nanoTime()
+    val paths1 = paths.filterNot(p => pathsDone.contains(p.toString))
+    index.go(paths1)
+    paths1.foreach(p => pathsDone.add(p.toString))
+    val e = System.nanoTime()
+    val elapsed = ((e - s) / 1000000)
+    time += elapsed
+
+    println(s"Finished indexgo in $elapsed ms")
   }
 }
 
 object Classpath {
   def apply(paths: List[Path]): Classpath = {
-    val index = Index(paths)
+    println(paths.map(_.toAbsolutePath.toString).mkString(":"))
+    val index = Index(paths, new HashMap[Locator, Entry]())
     new Classpath(index)
   }
 }

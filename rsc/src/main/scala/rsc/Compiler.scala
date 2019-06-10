@@ -26,12 +26,12 @@ class Compiler(val settings: Settings, val reporter: Reporter) extends AutoClose
 
   var trees: List[Source] = Nil
   var gensyms: Gensyms = Gensyms()
-  var classpath: Classpath = settings.classPaths.synchronized {
+  var classpath: Classpath =
     profile(settings, reporter, "classpath") {
-      val k = settings.cp.map(_.toString).mkString(":")
-      settings.classPaths.computeIfAbsent(k, _ => Classpath(settings.cp))
+      if (settings.classpath == null) throw new Exception("wa")
+      else settings.classpath
     }
-  }
+
   var symtab: Symtab = Symtab(classpath)
   var todo: Todo = Todo()
   var infos: Infos = Infos(classpath)
@@ -232,7 +232,9 @@ class Compiler(val settings: Settings, val reporter: Reporter) extends AutoClose
   }
 
   def close(): Unit = {
-    classpath.close()
+    if (settings.classpath == null) {
+      classpath.close()
+    }
     output.close()
   }
 

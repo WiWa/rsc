@@ -23,8 +23,7 @@ final case class Settings(
     cacheSymIsEmbedded: java.util.HashMap[String, Boolean] = new java.util.HashMap[String, Boolean](),
     ncache: java.util.HashMap[String, Name] =
       new java.util.HashMap[String, Name](),
-    classPaths: java.util.concurrent.ConcurrentHashMap[String, Classpath] =
-      new java.util.concurrent.ConcurrentHashMap[String, Classpath]
+    classpath: Classpath = null
 
 )
 
