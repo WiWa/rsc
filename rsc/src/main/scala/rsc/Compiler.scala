@@ -73,6 +73,42 @@ class Compiler(val settings: Settings, val reporter: Reporter) extends AutoClose
     }
   }
 
+  def run2(): Unit = {
+    DescriptorParser._cache = settings.dcache
+    for ((phaseName, phaseFn) <- phases) {
+      val start = System.nanoTime()
+      try {
+        phaseFn()
+      } catch {
+        case ex: Throwable =>
+          reporter.append(CrashMessage(ex))
+      }
+      val end = System.nanoTime()
+      val ms = (end - start) / 1000000
+      if (settings.xprint("timings")) {
+        reporter.append(VerboseMessage(s"Finished $phaseName in $ms ms"))
+      }
+      if (settings.xprint(phaseName)) {
+        reporter.append(VerboseMessage(this.str))
+      }
+      if (phaseName == "parse" && settings.xprint("scan")) {
+        val p = new Printer
+        PrettyCompiler.xprintScan(p, this)
+        reporter.append(VerboseMessage(p.toString))
+      }
+      if (settings.ystopAfter(phaseName)) {
+        return
+      }
+      if (phaseName == "parse" && settings.ystopAfter("scan")) {
+        return
+      }
+      if (reporter.problems.nonEmpty) {
+        reporter.append(ErrorSummary(reporter.problems))
+        return
+      }
+    }
+  }
+
   private def phases: List[(String, () => Unit)] = List(
     "parse" -> (() => parse()),
     "index" -> (() => index()),

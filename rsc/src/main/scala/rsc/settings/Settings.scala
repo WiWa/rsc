@@ -4,6 +4,8 @@ package rsc.settings
 
 import java.io._
 import java.nio.file._
+import scala.meta.internal.semanticdb.Scala.Descriptor
+import scala.meta.scalasig.lowlevel.Name
 
 final case class Settings(
     abi: Abi = Abi212,
@@ -14,7 +16,13 @@ final case class Settings(
     ins: List[Path] = Nil,
     notypeWarn: Boolean = false,
     xprint: Set[String] = Set[String](),
-    ystopAfter: Set[String] = Set[String]()
+    ystopAfter: Set[String] = Set[String](),
+    dcache: java.util.HashMap[String, (Descriptor, String)] =
+      new java.util.HashMap[String, (Descriptor, String)](),
+    cacheSymIsEmbedded: java.util.HashMap[String, Boolean] = new java.util.HashMap[String, Boolean](),
+    ncache: java.util.HashMap[String, Name] =
+      new java.util.HashMap[String, Name](),
+
 )
 
 // FIXME: https://github.com/twitter/rsc/issues/166

@@ -61,7 +61,7 @@ trait Symbols {
     s.Scala.Symbols.Multi(List(sym1, sym2))
   }
 
-  private[semantics] class DescriptorParser(s: String) {
+  class DescriptorParser(s: String) {
     var i = s.length
     def fail() = {
       val message = "invalid symbol format"
@@ -150,8 +150,8 @@ trait Symbols {
     }
   }
 
-  private[semantics] final object DescriptorParser {
-    private final val _cache = new java.util.HashMap[String, (d, String)]()
+  final object DescriptorParser {
+    var _cache = new java.util.HashMap[String, (d, String)]()
 
     def compute(symbol: String): (d, String) = {
       val parser = new DescriptorParser(symbol)
