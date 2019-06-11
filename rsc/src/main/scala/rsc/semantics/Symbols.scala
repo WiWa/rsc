@@ -151,7 +151,8 @@ trait Symbols {
   }
 
   final object DescriptorParser {
-    var _cache = new java.util.concurrent.ConcurrentHashMap[String, (d, String)]()
+    var _cache: java.util.concurrent.ConcurrentHashMap[String, (d, String)] =
+      new java.util.concurrent.ConcurrentHashMap[String, (d, String)](50000)
 
     def compute(symbol: String): (d, String) = {
       val parser = new DescriptorParser(symbol)

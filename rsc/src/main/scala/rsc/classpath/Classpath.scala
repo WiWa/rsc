@@ -74,9 +74,11 @@ final class Classpath private (index: Index) extends AutoCloseable {
     }
     if (info == null) {
       if (sym.hasLoc) {
-        if (index.contains(sym.metadataLoc)) {
-          index(sym.metadataLoc) match {
-            case PackageEntry() =>
+        val loc = sym.metadataLoc
+        val entry = index.get(loc)
+        if (entry != null) {
+          entry match {
+            case _: PackageEntry =>
               val info = s.SymbolInformation(
                 symbol = sym,
                 language = l.SCALA,
@@ -93,11 +95,11 @@ final class Classpath private (index: Index) extends AutoCloseable {
                 finally stream.close()
               }
               val payload = Scalasig.fromBinary(binary) match {
+                case ParsedScalasig(_, _, scalasig) => Scalacp.parse(scalasig, index)
+                case EmptyScalasig(_, Classfile(_, _, JavaPayload(node))) => Javacp.parse(node, index)
                 case FailedClassfile(_, cause) => crash(cause)
                 case FailedScalasig(_, _, cause) => crash(cause)
-                case EmptyScalasig(_, Classfile(_, _, JavaPayload(node))) => Javacp.parse(node, index)
                 case EmptyScalasig(_, Classfile(name, _, _)) => crash(name)
-                case ParsedScalasig(_, _, scalasig) => Scalacp.parse(scalasig, index)
               }
               index.synchronized {
                 payload.foreach(info => infos.put(info.symbol, info))
@@ -138,12 +140,12 @@ final class Classpath private (index: Index) extends AutoCloseable {
 }
 
 object Classpath {
-  def apply(paths: List[Path]): Classpath = {
+  def apply(paths: List[Path], size: Int = 32): Classpath = {
 //    println(paths.map(_.toAbsolutePath.toString).mkString(":"))
 
     val tpex = new ThreadPoolExecutor(
-      32,
-      32,
+      size,
+      size,
       100000000L,
       java.util.concurrent.TimeUnit.HOURS,
       new LinkedBlockingQueue[Runnable]()

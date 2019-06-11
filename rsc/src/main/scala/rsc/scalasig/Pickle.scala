@@ -138,13 +138,17 @@ final class Pickle private (settings: Settings, mtab: Mtab, sroot1: String, sroo
   }
 
   private def emitScope(sscope: Option[s.Scope]): List[Ref] = {
-    sscope.map(emitScope).getOrElse(Nil)
+    if (sscope.isEmpty) {
+      Nil
+    } else {
+      emitScope(sscope.get)
+    }
   }
 
   private def emitScope(sscope: s.Scope): List[Ref] = {
     val buf = List.newBuilder[Ref]
     sscope.hardlinks.foreach(info => mtab(info.symbol) = info)
-    sscope.symbols.map { ssym =>
+    sscope.symbols.foreach { ssym =>
       if (ssym.isAccessor) {
         if (!ssym.isPrivateThis || ssym.isLazy || ssym.owner.isTrait) {
           buf += emitEmbeddedSym(ssym, RefMode)

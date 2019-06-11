@@ -6,17 +6,17 @@ import scala.meta.internal.{semanticdb => s}
 import scala.meta.scalasig.lowlevel._
 
 sealed trait Key
-case class NameKey(name: Name) extends Key
-case class RefKey(ssym: String) extends Key
-case class ModuleRefKey(ssym: String) extends Key
-case class SigKey(ssig: Sig) extends Key
-case class TypeKey(stpe: s.Type, disambig: Int) extends Key
+final case class NameKey(name: Name) extends Key
+final case class RefKey(ssym: String) extends Key
+final case class ModuleRefKey(ssym: String) extends Key
+final case class SigKey(ssig: Sig) extends Key
+final case class TypeKey(stpe: s.Type, disambig: Int) extends Key
 case object NoPreKey extends Key
-case class LiteralKey(value: Any) extends Key
-case class AnnotInfoKey(sann: s.Annotation) extends Key
-case class SymAnnotKey(ssym: String, sann: s.Annotation) extends Key
-case class MacroImplKey(simpl: String) extends Key
-case class ChildrenKey(ssym: String) extends Key
+final case class LiteralKey(value: Any) extends Key
+final case class AnnotInfoKey(sann: s.Annotation) extends Key
+final case class SymAnnotKey(ssym: String, sann: s.Annotation) extends Key
+final case class MacroImplKey(simpl: String) extends Key
+final case class ChildrenKey(ssym: String) extends Key
 
 object TypeKey {
   def apply(stpe: s.Type): TypeKey = {

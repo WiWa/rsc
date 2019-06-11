@@ -11,7 +11,7 @@ import scala.meta.internal.{semanticdb => s}
 import scala.meta.internal.semanticdb.SymbolInformation.{Kind => k}
 import scala.meta.internal.semanticdb.SymbolInformation.{Property => p}
 
-class Mtab private (infos: Infos) {
+final class Mtab private (infos: Infos) {
   private val staticOwners = new HashMap[String, s.SymbolInformation]
 
   def apply(sym: String): s.SymbolInformation = {

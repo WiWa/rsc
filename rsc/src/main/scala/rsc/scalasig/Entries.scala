@@ -6,14 +6,15 @@ import java.util.Arrays
 import scala.collection.mutable
 import scala.meta.scalasig.lowlevel._
 
-class Entries private () {
+final class Entries private () {
   private var entries = new Array[Entry](1024)
   private var offset = 0
-  private val cache = new mutable.HashMap[Key, Ref]
+  private val cache = new java.util.HashMap[Key, Ref]
 
   def getOrElseUpdate(key: Key)(fn: => Entry): Ref = {
-    if (cache.contains(key)) {
-      cache(key)
+    val e = cache.getOrDefault(key, -1)
+    if (e != -1) {
+      e
     } else {
       val requestedLen = offset + 1
       if (requestedLen > entries.length) {
@@ -22,7 +23,7 @@ class Entries private () {
         entries = entries1
       }
       val ref = offset
-      cache(key) = ref
+      cache.put(key, ref)
       offset += 1
       val entry = fn
       entries(ref) = entry

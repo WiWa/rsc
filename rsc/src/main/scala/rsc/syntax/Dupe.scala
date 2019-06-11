@@ -6,6 +6,8 @@ trait Dupe {
   implicit class DupeTreeOps[T <: Tree](tree: T) {
     def dupe: T = {
       val result = tree match {
+        case TermStub() =>
+          TermStub()
         case x: Mod => dupeMod
         case x: Term => dupeTerm
         case x: Tpt => dupeTpt
@@ -398,8 +400,8 @@ trait Dupe {
         val qual1 = qual.dupe
         val id1 = id.dupe
         TermSelect(qual1, id1)
-      case TermStub() =>
-        TermStub()
+//      case TermStub() =>
+//        TermStub()
       case TermSuper(qual, mix) =>
         val qual1 = qual.dupe
         val mix1 = mix.dupe

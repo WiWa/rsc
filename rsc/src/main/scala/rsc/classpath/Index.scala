@@ -23,6 +23,14 @@ class Index private (
     else this.synchronized { entries.containsKey(loc) }
   }
 
+  def get(loc: Locator): Entry = {
+    val entry = entries.get(loc)
+    if (entry != null) entry
+    else this.synchronized {
+      entries.get(loc)
+    }
+  }
+
   def apply(loc: Locator): Entry = {
     val entry = entries.get(loc)
     if (entry != null) entry

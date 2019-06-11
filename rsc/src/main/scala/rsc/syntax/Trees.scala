@@ -13,10 +13,10 @@ sealed trait Tree extends Pretty with Product {
     this.pos = pos
     this
   }
-  override def hashCode(): Int = System.identityHashCode(this)
-  override def equals(that: Any) = this eq that.asInstanceOf[AnyRef]
-  def printStr(p: Printer): Unit = PrettyTree.str(p, this)
-  def printRepl(p: Printer): Unit = PrettyTree.repl(p, this)
+  override final def hashCode: Int = System.identityHashCode(this)
+  override final def equals(that: Any) = this eq that.asInstanceOf[AnyRef]
+  final def printStr(p: Printer): Unit = PrettyTree.str(p, this)
+  final def printRepl(p: Printer): Unit = PrettyTree.repl(p, this)
   def scalaStr: String = {
     val p = new Printer
     PrettyTree.scalaStr(p, this)
