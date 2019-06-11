@@ -54,7 +54,7 @@ trait SymbolInformations {
       def isAbstractType = sym.isType && !sym.isParam && sym.isDeferred
       if (sym.isPackage) {
         ()
-      } else if (sym.isJava) {
+      } else if (sym.isJava && false) {
         crash(sym.toString)
       } else {
         if (isAbstractClass || isAbstractMethod || isAbstractType) flip(p.ABSTRACT)

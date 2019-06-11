@@ -18,6 +18,13 @@ trait Defns {
     atPos(start)(DefnClass(mods, id, tparams, None, Nil, parents, None, stats))
   }
 
+  private def maybe[T](t: => T): List[T] = {
+    try List(t)
+    catch {
+      case _: CrashException => Nil
+    }
+  }
+
   private def defnConstant(): DefnConstant = {
     val start = in.offset
     val mods = this.mods()
@@ -91,7 +98,7 @@ trait Defns {
     val stats = List.newBuilder[Stat]
     while (in.token != RBRACE && in.token != EOF) {
       if (first && mods.hasEnum) {
-        stats ++= commaSeparated(defnConstant)
+        stats ++= maybe(commaSeparated(defnConstant)).flatten
         accept(SEMI)
       } else {
         val mods = this.mods()
@@ -103,7 +110,13 @@ trait Defns {
           case ENUM =>
             val modEnum = atPos(in.offset)(ModEnum())
             in.nextToken()
-            stats += defnClass(mods :+ modEnum)
+            try stats += defnClass(mods :+ modEnum)
+            catch {case e: Throwable =>
+              val ms = mods.trees.map(_.toString)
+              println(in.token)
+              println(in.snapshot())
+              crash("wtf: " + ms)
+            }
           case INTERFACE =>
             val modInterface = atPos(in.offset)(ModInterface())
             in.nextToken()
