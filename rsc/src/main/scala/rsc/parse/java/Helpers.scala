@@ -20,6 +20,13 @@ trait Helpers {
     }
   }
 
+  def acceptMaybe(token: Token): Unit = {
+    val offset = in.offset
+    if (in.token == token) {
+      in.nextToken()
+    }
+  }
+
   def ampSeparated[T](part: => T): List[T] = {
     tokenSeparated(AMP, part)
   }

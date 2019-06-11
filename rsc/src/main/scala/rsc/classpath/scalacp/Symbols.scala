@@ -81,7 +81,7 @@ trait Symbols {
       sym match {
         case sym: EmbeddedSymbol =>
           sym.skind match {
-            case k.LOCAL | k.OBJECT | k.PACKAGE_OBJECT =>
+            case k.LOCAL | k.OBJECT | k.PACKAGE_OBJECT | k.FIELD =>
               d.Term(svalue)
             case k.METHOD if sym.isValMethod =>
               d.Term(svalue)
@@ -98,6 +98,7 @@ trait Symbols {
             case k.TYPE_PARAMETER =>
               d.TypeParameter(svalue)
             case kind =>
+              println(kind)
               crash(sym.toString)
           }
         case sym: ExternalSymbol =>
