@@ -5,11 +5,19 @@ package rsc.classpath
 import java.nio.file._
 import java.nio.file.attribute._
 import java.util.HashMap
+import java.util.concurrent.{BlockingQueue, ConcurrentHashMap, LinkedBlockingQueue, ThreadPoolExecutor}
 import java.util.jar._
 import rsc.util._
 import scala.collection.JavaConverters._
+import scala.collection.mutable
+import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.duration._
 
-class Index private (entries: HashMap[Locator, Entry]) extends AutoCloseable {
+class Index private (
+  entries: ConcurrentHashMap[Locator, Entry],
+  implicit private val _ec: ExecutionContext
+) extends AutoCloseable {
+
   def contains(loc: Locator): Boolean = {
     if (entries.containsKey(loc)) true
     else this.synchronized { entries.containsKey(loc) }
@@ -67,16 +75,20 @@ class Index private (entries: HashMap[Locator, Entry]) extends AutoCloseable {
       } else if (root.toString.endsWith(".jar")) {
         val jar = new JarFile(root.toFile)
         val jarEntries = jar.entries()
+        val futures = mutable.ListBuffer.empty[Future[Unit]]
         while (jarEntries.hasMoreElements) {
           val jarEntry = jarEntries.nextElement()
-          if (jarEntry.getName.endsWith(".class") && !jarEntry.getName.startsWith("META-INF")) {
-            val loc = jarEntry.getName
-            entries.put(loc, CompressedEntry(jar, jarEntry))
-            val parts = jarEntry.getName.split("/").toList.dropRight(1)
-            val packages = parts.inits.toList.dropRight(1).map(parts => parts.mkString("/") + "/")
-            packages.foreach(entries.put(_, PackageEntry()))
+          val f = Future {
+            if (jarEntry.getName.endsWith(".class") && !jarEntry.getName.startsWith("META-INF")) {
+              val loc = jarEntry.getName
+              entries.put(loc, CompressedEntry(jar, jarEntry))
+              val parts = jarEntry.getName.split("/").toList.dropRight(1)
+              val packages = parts.inits.toList.dropRight(1).map(parts => parts.mkString("/") + "/")
+              packages.foreach(entries.put(_, PackageEntry()))
+            }
           }
         }
+        Await.result(Future.sequence(futures), 2.seconds)
         val manifest = jar.getManifest
         if (manifest != null) {
           val classpathAttr = manifest.getMainAttributes.getValue("Class-Path")
@@ -95,12 +107,15 @@ class Index private (entries: HashMap[Locator, Entry]) extends AutoCloseable {
     }
   }
   def go(paths: List[Path]): Unit = {
-    paths.foreach(visit)
+    Await.result(Future.sequence(paths.map(p => Future {visit(p)})), 2.seconds)
   }
 }
 // Index in build tool?
 object Index {
-  def apply(paths: List[Path], entries: HashMap[Locator, Entry]): Index = {
-    new Index(entries)
+  def apply(
+    entries: ConcurrentHashMap[Locator, Entry],
+    _ec: ExecutionContext
+  ): Index = {
+    new Index(entries, _ec)
   }
 }
