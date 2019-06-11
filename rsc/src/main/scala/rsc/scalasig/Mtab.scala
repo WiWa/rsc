@@ -7,6 +7,7 @@ import java.nio.file._
 import rsc.input._
 import rsc.semanticdb._
 import rsc.semantics._
+import scala.meta.internal.semanticdb.SymbolInformation
 import scala.meta.internal.{semanticdb => s}
 import scala.meta.internal.semanticdb.SymbolInformation.{Kind => k}
 import scala.meta.internal.semanticdb.SymbolInformation.{Property => p}
@@ -15,7 +16,7 @@ class Mtab private (infos: Infos) {
   private val staticOwners = new HashMap[String, s.SymbolInformation]
 
   def apply(sym: String): s.SymbolInformation = {
-    if (infos.staticOwners.contains(sym)) {
+    if (infos.staticOwners.containsKey(sym)) {
       val info = staticOwners.get(sym)
       if (info != null) {
         info
@@ -26,16 +27,12 @@ class Mtab private (infos: Infos) {
         val combinedDecls = combinedSig.declarations.get
         def isInstance(declSym: String) = !infos(declSym).isStatic
         val (instanceDecls, staticDecls) = combinedDecls.symlinks.partition(isInstance)
-        if (sym.desc.isType) {
-          val instanceSig = combinedSig.copy(declarations = Some(s.Scope(instanceDecls)))
-          val instanceInfo = combinedInfo.copy(signature = instanceSig)
-          staticOwners.put(sym, instanceInfo)
-          instanceInfo
-        } else {
+
+        def static(sym1: String) = {
           val staticPs = List(s.TypeRef(s.NoType, ObjectClass, Nil))
           val staticSig = s.ClassSignature(None, staticPs, s.NoType, Some(s.Scope(staticDecls)))
           val staticInfo = s.SymbolInformation(
-            symbol = sym,
+            symbol = sym1,
             language = combinedInfo.language,
             kind = k.OBJECT,
             properties = p.FINAL.value,
@@ -44,8 +41,23 @@ class Mtab private (infos: Infos) {
             annotations = Nil,
             access = combinedInfo.access
           )
-          staticOwners.put(sym, staticInfo)
+          staticOwners.put(sym1, staticInfo)
           staticInfo
+        }
+
+        if (sym.desc.isType) {
+          val instanceSig = combinedSig.copy(declarations = Some(s.Scope(instanceDecls)))
+          val instanceInfo = combinedInfo.copy(signature = instanceSig)
+          staticOwners.put(sym, instanceInfo)
+
+          val csym = sym.companionObject
+          val cOwnedInfo = infos.staticOwners.getOrDefault(csym, null)
+          if (cOwnedInfo != null && cOwnedInfo.isJava) {
+            static(csym)
+          }
+          instanceInfo
+        } else {
+          static(sym)
         }
       }
     } else {
@@ -54,7 +66,7 @@ class Mtab private (infos: Infos) {
   }
 
   def contains(sym: String): Boolean = {
-    infos.contains(sym)
+    staticOwners.containsKey(sym) || infos.contains(sym)
   }
 
   def get(sym: String): Option[s.SymbolInformation] = {
@@ -69,11 +81,15 @@ class Mtab private (infos: Infos) {
 
   def update(sym: String, info: s.SymbolInformation): Unit = {
     infos.put(sym, info, NoPosition)
+    if (info.isStatic) {
+      staticOwners.put(sym.owner, info)
+      staticOwners.put(sym.owner.companionObject, info)
+    }
   }
 
   def anchor(sym: String): Option[String] = {
     val pos = {
-      if (infos.staticOwners.contains(sym) && sym.desc.isTerm) infos.pos(sym.companionClass)
+      if (infos.staticOwners.containsKey(sym) && sym.desc.isTerm) infos.pos(sym.companionClass)
       else infos.pos(sym)
     }
     if (pos != NoPosition) {

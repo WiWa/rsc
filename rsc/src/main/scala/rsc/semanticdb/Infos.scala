@@ -13,7 +13,7 @@ import scala.meta.internal.{semanticdb => s}
 class Infos private (classpathInfos: Classpath) {
   private val outlineInfos = new HashMap[Symbol, s.SymbolInformation]
   private val outlinePositions = new HashMap[Symbol, Position]
-  val staticOwners = new HashSet[Symbol]
+  val staticOwners = new HashMap[String, s.SymbolInformation]
   val macroImpls = new HashMap[Symbol, Symbol]
   val children = new HashMap[Symbol, mutable.UnrolledBuffer[Symbol]]
 
@@ -41,8 +41,8 @@ class Infos private (classpathInfos: Classpath) {
     outlineInfos.put(sym, info)
     outlinePositions.put(sym, pos)
     if (info.isStatic) {
-      staticOwners.add(sym.owner)
-      staticOwners.add(sym.owner.companionObject)
+      staticOwners.put(sym.owner, info)
+      staticOwners.put(sym.owner.companionObject, info)
     }
   }
 }
