@@ -27,7 +27,7 @@ final class Classpath private (index: Index) extends AutoCloseable {
   Scalalib.packages.foreach(info => infos.put(info.symbol, info))
   println("asdf", infos.containsKey("scala/AnyRef#"))
 
-  def contains(sym: String): Boolean = this.synchronized {
+  def contains(sym: String): Boolean = {
     if (infos.containsKey(sym)) {
       true
     } else {
@@ -36,57 +36,68 @@ final class Classpath private (index: Index) extends AutoCloseable {
     }
   }
 
-  def apply(sym: String): s.SymbolInformation = this.synchronized {
+  def apply(sym: String): s.SymbolInformation = {
     val info = infos.get(sym)
     if (info != null) {
       info
     } else {
-      load(sym)
-      val info = infos.get(sym)
-      if (info != null) info
-      else {
-        println("wtf", s"\'$sym\'", infos.containsKey(sym))
-        crash(sym)
+      index.synchronized {
+        val info = infos.get(sym)
+        if (info != null) {
+          info
+        } else {
+          load(sym)
+          val info = infos.get(sym)
+          if (info != null) info
+          else {
+            println("wtf", s"\'$sym\'", infos.containsKey(sym))
+            crash(sym)
+          }
+        }
       }
     }
   }
 
-  private def load(sym: String): Unit = this.synchronized {
+  private def load(sym: String): Unit = {
 //    if (sym == "scala/AnyRef#") {
 //      println("fdsa")
 //    }
     val info = infos.get(sym)
-    if (info == null) {
-      if (sym.hasLoc) {
-        if (index.contains(sym.metadataLoc)) {
-          index(sym.metadataLoc) match {
-            case PackageEntry() =>
-              val info = s.SymbolInformation(
-                symbol = sym,
-                language = l.SCALA,
-                kind = k.PACKAGE,
-                displayName = sym.desc.value
-              )
-              infos.put(info.symbol, info)
-            case entry: FileEntry =>
-              val binary = {
-                val stream = entry.openStream()
-                try BytesBinary(entry.str, stream.readAllBytes())
-                finally stream.close()
-              }
-              val payload = Scalasig.fromBinary(binary) match {
-                case FailedClassfile(_, cause) => crash(cause)
-                case FailedScalasig(_, _, cause) => crash(cause)
-                case EmptyScalasig(_, Classfile(_, _, JavaPayload(node))) => Javacp.parse(node, index)
-                case EmptyScalasig(_, Classfile(name, _, _)) => crash(name)
-                case ParsedScalasig(_, _, scalasig) => Scalacp.parse(scalasig, index)
-              }
-              payload.foreach(info => infos.put(info.symbol, info))
+    if (info != null) { return }
+    index.synchronized {
+      val info = infos.get(sym)
+      if (info == null) {
+        if (sym.hasLoc) {
+          if (index.contains(sym.metadataLoc)) {
+            index(sym.metadataLoc) match {
+              case PackageEntry() =>
+                val info = s.SymbolInformation(
+                  symbol = sym,
+                  language = l.SCALA,
+                  kind = k.PACKAGE,
+                  displayName = sym.desc.value
+                )
+                infos.put(info.symbol, info)
+              case entry: FileEntry =>
+                val binary = {
+                  val stream = entry.openStream()
+                  try BytesBinary(entry.str, stream.readAllBytes())
+                  finally stream.close()
+                }
+                val payload = Scalasig.fromBinary(binary) match {
+                  case FailedClassfile(_, cause) => crash(cause)
+                  case FailedScalasig(_, _, cause) => crash(cause)
+                  case EmptyScalasig(_, Classfile(_, _, JavaPayload(node))) => Javacp.parse(node, index)
+                  case EmptyScalasig(_, Classfile(name, _, _)) => crash(name)
+                  case ParsedScalasig(_, _, scalasig) => Scalacp.parse(scalasig, index)
+                }
+                payload.foreach(info => infos.put(info.symbol, info))
+            }
           }
+        } else {
+          if (sym.owner != "") load(sym.owner)
+          else ()
         }
-      } else {
-        if (sym.owner != "") load(sym.owner)
-        else ()
       }
     }
 //    else {

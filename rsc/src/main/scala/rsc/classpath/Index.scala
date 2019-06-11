@@ -10,14 +10,19 @@ import rsc.util._
 import scala.collection.JavaConverters._
 
 class Index private (entries: HashMap[Locator, Entry]) extends AutoCloseable {
-  def contains(loc: Locator): Boolean = this.synchronized {
-    entries.containsKey(loc)
+  def contains(loc: Locator): Boolean = {
+    if (entries.containsKey(loc)) true
+    else this.synchronized { entries.containsKey(loc) }
   }
 
-  def apply(loc: Locator): Entry = this.synchronized {
+  def apply(loc: Locator): Entry = {
     val entry = entries.get(loc)
     if (entry != null) entry
-    else crash(loc)
+    else this.synchronized {
+      val entry = entries.get(loc)
+      if (entry != null) entry
+      else crash(loc)
+    }
   }
 
   def close(): Unit = this.synchronized {
@@ -27,7 +32,7 @@ class Index private (entries: HashMap[Locator, Entry]) extends AutoCloseable {
     }
   }
 
-  def visit(root: Path): Unit = this.synchronized {
+  def visit(root: Path): Unit = {
     if (Files.exists(root)) {
       if (Files.isDirectory(root)) {
         Files.walkFileTree(
@@ -89,7 +94,7 @@ class Index private (entries: HashMap[Locator, Entry]) extends AutoCloseable {
       ()
     }
   }
-  def go(paths: List[Path]): Unit = this.synchronized {
+  def go(paths: List[Path]): Unit = {
     paths.foreach(visit)
   }
 }
