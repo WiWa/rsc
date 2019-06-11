@@ -13,6 +13,7 @@ import rsc.settings._
 import rsc.syntax._
 import rsc.util.time
 import scala.collection.mutable
+import scala.meta.internal.semanticdb.ClassSignature
 // import scala.meta.internal.semanticdb.Scala._
 import scala.meta.internal.semanticdb.Scala.{Descriptor => d}
 import scala.meta.internal.semanticdb.Scala.Symbols
@@ -38,6 +39,7 @@ final class Writer private (settings: Settings, reporter: Reporter, infos: Infos
 
     val (pickle, elapsed0) = time {
       val pickle = Pickle(settings, mtab, sym, companionSym)
+
       pickle.emitEmbeddedSym(sym, ToplevelMode)
       done += sym
       if (mtab.contains(companionSym)) {

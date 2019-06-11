@@ -17,7 +17,8 @@ trait SymbolInformations {
 
   protected implicit class SymbolInformationOps(sym: EmbeddedSymbol) {
     def slang: s.Language = {
-      l.SCALA
+      if (sym.isJava) l.JAVA
+      else l.SCALA
     }
 
     def skind: Kind = {
