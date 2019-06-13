@@ -105,7 +105,7 @@ class TreeStr(p: Printer, l: KnownLanguage) {
       case DefnConstant(mods, id) =>
         apply(mods)
         apply(id)
-      case DefnCtor(mods, id, paramss, rhs) =>
+      case DefnCtor(mods, id, tparams, paramss, rhs) =>
         l match {
           case ScalaLanguage =>
             apply(mods)
@@ -117,6 +117,7 @@ class TreeStr(p: Printer, l: KnownLanguage) {
             printJavaMods(mods) {
               val _ :: (defnClass: DefnClass) :: _ = stack
               p.str(defnClass.id)
+              apply(tparams, ", ")
               apply(paramss)
             }
             rhs match {

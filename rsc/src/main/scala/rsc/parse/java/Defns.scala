@@ -34,12 +34,12 @@ trait Defns {
     atPos(start)(DefnConstant(mods, id))
   }
 
-  private def defnCtor(mods: Mods, id: CtorId): DefnCtor = {
+  private def defnCtor(mods: Mods, id: CtorId, tparams: List[TypeParam]): DefnCtor = {
     val start = mods.pos.start
     val paramss = List(params())
     val mods1 = modThrows(mods)
     val rhs = this.rhs()
-    atPos(start)(DefnCtor(mods1, id, paramss, rhs))
+    atPos(start)(DefnCtor(mods1, id, tparams, paramss, rhs))
   }
 
   private def defnField(mods: Mods, tpt: Tpt, id: TermId): Stat = {
@@ -147,7 +147,7 @@ trait Defns {
             val tpt = this.tpt()
             if (in.token == LPAREN) {
               val id = atPos(tpt.pos)(CtorId())
-              stats += defnCtor(mods, id)
+              stats += defnCtor(mods, id, tparams)
             } else {
               val id = termId()
               if (in.token == LPAREN) {

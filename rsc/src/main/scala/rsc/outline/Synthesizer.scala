@@ -54,9 +54,10 @@ final class Synthesizer private (
   def defaultConstructor(env: Env, tree: DefnClass): Unit = {
     val mods = tree.mods.filter(_.isInstanceOf[ModAccess])
     val id = CtorId().withPos(tree.id.pos)
+    val tparams = Nil
     val paramss = List(List())
     val rhs = TermStub()
-    val ctor = DefnCtor(mods, id, paramss, rhs)
+    val ctor = DefnCtor(mods, id, tparams, paramss, rhs)
     scheduler(env, ctor.withPos(tree.pos))
   }
 

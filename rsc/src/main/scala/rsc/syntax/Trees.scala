@@ -74,10 +74,10 @@ final case class DefnClass(
 
 final case class DefnConstant(mods: Mods, id: TermId) extends Stat with TermOutline
 
-final case class DefnCtor(mods: Mods, id: CtorId, paramss: List[List[Param]], rhs: Term)
+// tparams from Java
+final case class DefnCtor(mods: Mods, id: CtorId, tparams: List[TypeParam], paramss: List[List[Param]], rhs: Term)
     extends DefnDef
     with TermOutline {
-  def tparams = Nil
   def ret = None
 }
 

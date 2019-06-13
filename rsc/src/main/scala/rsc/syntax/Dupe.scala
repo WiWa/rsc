@@ -35,12 +35,13 @@ trait Dupe {
           val mods1 = mods.dupe
           val id1 = id.dupe
           DefnConstant(mods1, id1)
-        case DefnCtor(mods, id, paramss, rhs) =>
+        case DefnCtor(mods, id, tparams, paramss, rhs) =>
           val mods1 = mods.dupe
           val id1 = id.dupe
+          val tparams1 = tparams.map(_.dupe)
           val paramss1 = paramss.map(_.map(_.dupe))
           val rhs1 = rhs.dupe
-          DefnCtor(mods1, id1, paramss1, rhs1)
+          DefnCtor(mods1, id1, tparams1, paramss1, rhs1)
         case DefnField(mods, id, tpt, rhs) =>
           val mods1 = mods.dupe
           val id1 = id.dupe
