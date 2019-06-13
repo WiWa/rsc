@@ -321,6 +321,13 @@ class Pickle private (settings: Settings, mtab: Mtab, sroot1: String, sroot2: St
           val tparams = emitScope(stparams)
           val ret = emitTpe(sret)
           PolyType(ret, tparams)
+        case s.IntersectionType(types) =>
+          val ss = s.StructuralType(s.WithType(types), None)
+          stack.inStructuralType(ss) { srefinement =>
+            val sym = emitEmbeddedSym(srefinement, RefMode)
+            val parents = types.toList.map(emitTpe)
+            RefinedType(sym, parents)
+          }
         case _ =>
           crash(stpe)
       }

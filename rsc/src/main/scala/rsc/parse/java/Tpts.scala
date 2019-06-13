@@ -55,6 +55,9 @@ trait Tpts {
         case VOID =>
           in.nextToken()
           atPos(start)(TptVoid())
+        case DEFAULT =>
+          in.nextToken()
+          atPos(start)(TptVoid())
         case other =>
           val unfinished = parameterizedTpt(start, tptId())
           referenceTpt(start, unfinished)

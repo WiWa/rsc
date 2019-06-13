@@ -78,9 +78,13 @@ trait Defns {
     val parents = List.newBuilder[Parent]
     if ((mods.hasClass || mods.hasInterface) && in.token == EXTENDS) {
       in.nextToken()
-      val start = in.offset
-      val tpt = this.tpt()
-      parents += atPos(start)(ParentExtends(tpt))
+      def parentExtends = {
+        val start = in.offset
+        val tpt = this.tpt()
+        parents += atPos(start)(ParentExtends(tpt))
+      }
+      if (mods.hasInterface) commaSeparated(parentExtends)
+      else parentExtends
     }
     if ((mods.hasClass || mods.hasEnum) && in.token == IMPLEMENTS) {
       in.nextToken()
@@ -123,6 +127,7 @@ trait Defns {
             stats += defnClass(mods :+ modInterface)
           case LBRACE =>
             skipBraces()
+            maybe(accept(SEMI))
           case _ =>
             val tparams = typeParams()
             val tpt = this.tpt()
