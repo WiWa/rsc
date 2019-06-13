@@ -29,7 +29,7 @@ trait Terms {
     }
   }
 
-  private def maybeLit(): Option[Any] = {
+  def maybeLit(): Option[Any] = {
     in.token match {
       case FALSE | LITCHAR | LITINT | LITHEXINT | LITLONG | LITHEXLONG | LITFLOAT | LITDOUBLE |
           LITSTRING | MINUS | NULL | TRUE =>

@@ -96,7 +96,7 @@ trait Helpers {
     }
   }
 
-  private def tokenSeparated[T](separator: Int, part: => T): List[T] = {
+  def tokenSeparated[T](separator: Int, part: => T): List[T] = {
     val ts = List.newBuilder[T]
     ts += part
     while (in.token == separator) {

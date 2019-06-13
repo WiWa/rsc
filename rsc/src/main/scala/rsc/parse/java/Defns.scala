@@ -61,9 +61,23 @@ trait Defns {
     val start = mods.pos.start
     val ret = Some(tpt)
     val paramss = List(params())
-    val mods1 = modDims(mods)
-    val mods2 = modThrows(mods1)
-    val rhs = {
+
+    var mods2 = mods
+    val rhs =  if (in.token == DEFAULT) {
+      // int parser() default 0;
+      in.nextToken()
+      val ml = maybeLit()
+      if (ml.isEmpty) {
+        tokenSeparated(DOT, acceptMaybe(ID))
+      }
+      if (in.token == CLASS) {
+        in.nextToken()
+      }
+      accept(SEMI)
+      None
+    } else {
+      val mods1 = modDims(mods)
+      mods2 = modThrows(mods1)
       if (in.token == LBRACE) {
         Some(this.rhs())
       } else {
