@@ -117,7 +117,9 @@ trait Defns {
     while (in.token != RBRACE && in.token != EOF) {
       if (first && mods.hasEnum) {
         stats ++= maybe(commaSeparated(defnConstant)).flatten
-        accept(SEMI)
+        if (in.token != RBRACE) {
+          accept(SEMI)
+        }
       } else {
         val mods = this.mods()
         in.token match {
