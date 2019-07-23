@@ -138,17 +138,17 @@ final class Classpath private (index: Index) extends AutoCloseable {
 }
 
 object Classpath {
-  def apply(paths: List[Path]): Classpath = {
+  def apply(paths: List[Path], threads: Int = 32): Classpath = {
 //    println(paths.map(_.toAbsolutePath.toString).mkString(":"))
 
     val tpex = new ThreadPoolExecutor(
-      32,
-      32,
+      threads,
+      threads,
       100000000L,
       java.util.concurrent.TimeUnit.HOURS,
       new LinkedBlockingQueue[Runnable]()
     )
-    tpex.setCorePoolSize(32)
+    tpex.setCorePoolSize(threads)
     val ec = ExecutionContext.fromExecutor(tpex)
     val index = Index(new ConcurrentHashMap[Locator, Entry](), ec)
     new Classpath(index)
