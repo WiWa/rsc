@@ -189,7 +189,10 @@ lazy val scalasig = project
     commonSettings,
     publishableSettings,
     libraryDependencies += "org.ow2.asm" % "asm" % V.asm,
-    libraryDependencies += "org.ow2.asm" % "asm-tree" % V.asm
+    libraryDependencies += "org.ow2.asm" % "asm-tree" % V.asm,
+    PB.targets in Compile := Seq(
+      scalapb.gen() -> (sourceManaged in Compile).value
+    )
   )
 
 lazy val scalap = project
