@@ -187,12 +187,10 @@ lazy val scalasig = project
   .in(file("scalasig/scalasig"))
   .settings(
     commonSettings,
+    protobufSettings,
     publishableSettings,
     libraryDependencies += "org.ow2.asm" % "asm" % V.asm,
     libraryDependencies += "org.ow2.asm" % "asm-tree" % V.asm,
-    PB.targets in Compile := Seq(
-      scalapb.gen() -> (sourceManaged in Compile).value
-    )
   )
 
 lazy val scalap = project
@@ -260,6 +258,17 @@ lazy val commonSettings = Seq(
   cancelable := true,
   resolvers += Opts.resolver.sonatypeReleases,
   resolvers += Opts.resolver.sonatypeSnapshots
+)
+
+lazy val protobufSettings = Def.settings(
+  commonSettings,
+  PB.targets.in(Compile) := Seq(
+    scalapb.gen(
+      flatPackage = true // Don't append filename to package
+    ) -> sourceManaged.in(Compile).value
+  ),
+  PB.protoSources.in(Compile) := Seq(file("semanticdb/semanticdb")),
+  libraryDependencies += "com.thesamet.scalapb" %%% "scalapb-runtime" % scalapb.compiler.Version.scalapbVersion
 )
 
 lazy val publishableSettings = Seq(
