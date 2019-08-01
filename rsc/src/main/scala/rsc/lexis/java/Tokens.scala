@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0 (see LICENSE.md).
 package rsc.lexis.java
 
-trait Tokens extends rsc.lexis.Tokens {
+trait Tokens extends rsc.lexis.common.Tokens {
   final val ABSTRACT = 401
   final val AMP = 402
   final val AMPAMP = 403

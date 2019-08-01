@@ -1,8 +1,6 @@
-// Copyright (c) 2017-2019 Twitter, Inc.
-// Licensed under the Apache License, Version 2.0 (see LICENSE.md).
-package rsc.lexis
+package rsc.lexis.common
 
-import rsc.pretty._
+import rsc.pretty.{PrettyToken, Printer}
 
 trait Tokens {
   final val BOF = 1

@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0 (see LICENSE.md).
 package rsc.lexis.scala
 
-trait Tokens extends rsc.lexis.Tokens {
+trait Tokens extends rsc.lexis.common.Tokens {
   // NOTE: Scanner tokens.
   final val ABSTRACT = 201
   final val ARROW = 202

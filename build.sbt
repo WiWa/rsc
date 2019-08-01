@@ -1,3 +1,5 @@
+import scalapb.compiler.Version.scalapbVersion
+
 lazy val V = new {
   val asm = "6.0"
   val scala = computeScalaVersionFromTravisYml("2.12")
@@ -135,7 +137,7 @@ lazy val rsc = project
     commonSettings,
     publishableSettings,
     libraryDependencies += "org.scalameta" %% "semanticdb" % V.scalameta,
-    libraryDependencies += "com.lihaoyi" %% "fastparse" % "1.0.0",
+    libraryDependencies += "org.scalameta" %% "fastparse" % "1.0.0",
     mainClass := Some("rsc.cli.Main")
   )
 
@@ -263,12 +265,9 @@ lazy val commonSettings = Seq(
 lazy val protobufSettings = Def.settings(
   commonSettings,
   PB.targets.in(Compile) := Seq(
-    scalapb.gen(
-      flatPackage = true // Don't append filename to package
-    ) -> sourceManaged.in(Compile).value
+    scalapb.gen() -> sourceManaged.in(Compile).value
   ),
-  PB.protoSources.in(Compile) := Seq(file("semanticdb/semanticdb")),
-  libraryDependencies += "com.thesamet.scalapb" %%% "scalapb-runtime" % scalapb.compiler.Version.scalapbVersion
+  libraryDependencies += "com.thesamet.scalapb" %% "scalapb-runtime" % scalapbVersion % "protobuf"
 )
 
 lazy val publishableSettings = Seq(
