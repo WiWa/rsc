@@ -5,7 +5,7 @@ package rsc.pretty
 import rsc.util._
 import scala.{Symbol => StdlibSymbol}
 import scala.meta.internal.{semanticdb => s}
-import scalapb._
+import scalapb.GeneratedMessage
 
 trait Repl[T] {
   def apply(p: Printer, x: T): Unit

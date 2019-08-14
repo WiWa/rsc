@@ -3,11 +3,10 @@
 package rsc.pretty
 
 import rsc.util._
-import scala.{Symbol => StdlibSymbol}
+import scala.meta.internal.semanticdb.SymbolInformation.{Property => p, _}
 import scala.meta.internal.{semanticdb => s}
-import scala.meta.internal.semanticdb.SymbolInformation._
-import scala.meta.internal.semanticdb.SymbolInformation.{Property => p}
-import scalapb._
+import scala.{Symbol => StdlibSymbol}
+import scalapb.GeneratedMessage
 
 trait Str[T] {
   def apply(p: Printer, x: T): Unit
@@ -120,7 +119,7 @@ object Str {
           info.toProtoString, { m =>
             val props = m.group(1).toInt
             val buf = List.newBuilder[String]
-            def has(prop: Property): Boolean = (props & prop.value) != 0
+            def has(prop: p): Boolean = (props & prop.value) != 0
             if (has(p.ABSTRACT)) buf += "ABSTRACT"
             if (has(p.FINAL)) buf += "FINAL"
             if (has(p.SEALED)) buf += "SEALED"
