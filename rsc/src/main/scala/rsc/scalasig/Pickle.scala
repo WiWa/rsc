@@ -930,10 +930,26 @@ class Pickle private (settings: Settings, mtab: Mtab, sroot1: String, sroot2: St
         NoPre
       } else {
         var sowner = ssym.owner
+        val endPrefix = SomePre(s.ThisType(sowner))
         if (ssym.desc.isType && sowner.desc.isType && ssym.isStatic) {
           sowner = Symbols.Global(sowner.owner, d.Term(sowner.desc.value))
         }
-        SomePre(s.ThisType(sowner))
+        if (ssym.desc.isType) {
+          if (sowner == "_root_/") {
+            endPrefix
+          } else {
+            sowner.spre match {
+              case NoPre =>
+                endPrefix
+              case SomePre(sownerPreTpe) if sownerPreTpe == s.ThisType("_root_/") =>
+                endPrefix
+              case SomePre(sownerPreTpe) =>
+                SomePre(s.SingleType(sownerPreTpe, sowner))
+            }
+          }
+        } else {
+          endPrefix
+        }
       }
     }
     def stpe: s.Type = {
