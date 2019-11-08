@@ -13,6 +13,7 @@ import scala.collection.mutable
 import scala.meta.internal.semanticdb.Scala._
 import scala.meta.internal.semanticdb.Scala.{Descriptor => d}
 import scala.meta.scalasig._
+import scala.meta.scalasig.lowlevel.Scalasig
 
 final class Writer private (settings: Settings, reporter: Reporter, infos: Infos, output: Output) {
   private val mtab = Mtab(infos)
@@ -49,6 +50,12 @@ final class Writer private (settings: Settings, reporter: Reporter, infos: Infos
       val markerClassfile = Classfile(markerName, markerSource, NoPayload)
       output.write(markerPath, markerClassfile.toBinary)
     }
+  }
+
+  def writeScalasig(scalasig: Scalasig): Unit = {
+    val classfile = scalasig.toClassfile
+    val path = Paths.get(classfile.name + ".class")
+    output.write(path, classfile.toBinary)
   }
 }
 
