@@ -20,7 +20,7 @@ object Binaries {
         .walk(path)
         .iterator()
         .asScala
-        .filter(_.toString.endsWith(".class"))
+        .filter(p => p.toString.endsWith(".class") || p.toString.endsWith(".sig"))
         .toArray
         // NOTE: nio.file.Path.compareTo is file system specific,
         // and the behavior is different on windows vs. unix
@@ -35,7 +35,7 @@ object Binaries {
         val jarIt = jar.entries()
         while (jarIt.hasMoreElements) {
           val jarEntry = jarIt.nextElement()
-          if (jarEntry.getName.endsWith(".class")) {
+          if (jarEntry.getName.endsWith(".class") || jarEntry.getName.endsWith(".sig")) {
             buf += jarEntry
           }
         }
@@ -53,7 +53,7 @@ object Binaries {
             }
           }
         }
-      } else if (path.toString.endsWith(".class")) {
+      } else if (path.toString.endsWith(".class") || path.toString.endsWith(".sig")) {
         fn(path)
       } else {
         ()

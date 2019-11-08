@@ -30,8 +30,14 @@ object ScalasigCodec {
     import reader._
 
     val majorVersion = readVarint()
-    assert(majorVersion == MajorVersion)
     val minorVersion = readVarint()
+    println("major")
+    println(majorVersion)
+    println(MajorVersion)
+    println("minor")
+    println(minorVersion)
+    println(MinorVersion)
+    assert(majorVersion == MajorVersion)
     assert(minorVersion == MinorVersion)
 
     val numEntries = readVarint()
