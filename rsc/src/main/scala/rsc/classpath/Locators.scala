@@ -29,7 +29,7 @@ trait Locators {
     // foo/bar/ => foo/bar/
     // foo/Bar# => foo/Bar.class
     // foo/Bar. => foo/Bar.class (because Scala signatures of objects are stored in .class files)
-    def metadataLoc: Locator = {
+    def metadataLoc: List[Locator] = {
       def loop(sym: String): Locator = {
         if (sym == Symbols.RootPackage) {
           ""
@@ -48,10 +48,16 @@ trait Locators {
         }
       }
       sym.desc match {
-        case _: d.Package => sym
-        case _: d.Term => loop(sym) + ".class"
-        case _: d.Type => loop(sym) + ".class"
-        case _ => crash(sym)
+        case _: d.Package =>
+          List(sym)
+        case _: d.Term =>
+          val base = loop(sym)
+          List(s"$base.class", s"$base.sig")
+        case _: d.Type =>
+          val base = loop(sym)
+          List(s"$base.class", s"$base.sig")
+        case _ =>
+          crash(sym)
       }
     }
 
@@ -61,9 +67,9 @@ trait Locators {
     // foo/Bar. => foo/Bar$.class (because bytecode of objects is stored in $.class files)
     def bytecodeLoc: Locator = {
       sym.desc match {
-        case _: d.Package => metadataLoc
-        case _: d.Term => metadataLoc.replace(".class", "$.class")
-        case _: d.Type => metadataLoc
+        case _: d.Package => metadataLoc.head
+        case _: d.Term => metadataLoc.head.replace(".class", "$.class")
+        case _: d.Type => metadataLoc.head
         case _ => crash(sym)
       }
     }
