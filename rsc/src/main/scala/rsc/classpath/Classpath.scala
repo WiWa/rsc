@@ -8,6 +8,7 @@ import java.util.HashMap
 import rsc.classpath.javacp._
 import rsc.classpath.scalacp._
 import rsc.util._
+import scala.meta.internal.scalasig.ScalasigCodec
 import scala.meta.internal.{semanticdb => s}
 import scala.meta.internal.semanticdb.{Language => l}
 import scala.meta.internal.semanticdb.Scala._
@@ -43,10 +44,13 @@ final class Classpath private (index: Index) extends AutoCloseable {
 
   private def load(sym: String): Unit = {
     val info = infos.get(sym)
+    println("load", sym)
     if (info == null) {
+      println("nul")
       if (sym.hasLoc) {
-        if (index.contains(sym.metadataLoc)) {
-          index(sym.metadataLoc) match {
+        println("hasloc")
+        if (sym.metadataLoc.exists(loc => index.contains(loc))) {
+          index.get(sym.metadataLoc) match {
             case PackageEntry() =>
               val info = s.SymbolInformation(
                 symbol = sym,
@@ -61,12 +65,31 @@ final class Classpath private (index: Index) extends AutoCloseable {
                 try BytesBinary(entry.str, stream.readAllBytes())
                 finally stream.close()
               }
-              val payload = Scalasig.fromBinary(binary) match {
-                case FailedClassfile(_, cause) => crash(cause)
-                case FailedScalasig(_, _, cause) => crash(cause)
-                case EmptyScalasig(_, Classfile(_, _, JavaPayload(node))) => Javacp.parse(node, index)
-                case EmptyScalasig(_, Classfile(name, _, _)) => crash(name)
-                case ParsedScalasig(_, _, scalasig) => Scalacp.parse(scalasig, index)
+              println("CP")
+              println(entry.path.toString)
+              var sss = false
+              val payload = if (entry.isSigfile) {
+                sss = true
+                println("ISSIG")
+                val filename = entry.path.toString
+                try {
+                  val scalasig = ScalasigCodec.fromBytes(filename, "", binary.bytes)
+                  Scalacp.parse(scalasig, index)
+                } catch {
+                  case ex: Throwable =>
+                    crash(filename)
+                }
+              } else {
+                Scalasig.fromBinary(binary) match {
+                  case FailedClassfile(_, cause) => crash(cause)
+                  case FailedScalasig(_, _, cause) => crash(cause)
+                  case EmptyScalasig(_, Classfile(_, _, JavaPayload(node))) => Javacp.parse(node, index)
+                  case EmptyScalasig(_, Classfile(name, _, _)) => crash(name)
+                  case ParsedScalasig(_, _, scalasig) => Scalacp.parse(scalasig, index)
+                }
+              }
+              if (sss) {
+                payload.foreach(info => println("s", info.symbol))
               }
               payload.foreach(info => infos.put(info.symbol, info))
           }

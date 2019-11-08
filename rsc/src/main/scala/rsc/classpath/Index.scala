@@ -20,6 +20,18 @@ class Index private (entries: HashMap[Locator, Entry]) extends AutoCloseable {
     else crash(loc)
   }
 
+  def get(locs: List[Locator]): Entry = {
+    val entry = locs.foldLeft(null: Entry) { (entry_, loc) =>
+      if (entry_ == null) {
+        entries.get(loc)
+      } else {
+        entry_
+      }
+    }
+    if (entry != null) entry
+    else crash(locs)
+  }
+
   def close(): Unit = {
     entries.values.iterator.asScala.foreach {
       case CompressedEntry(jar, _) => jar.close()
@@ -41,7 +53,9 @@ object Index {
                   file: Path,
                   attrs: BasicFileAttributes
               ): FileVisitResult = {
-                if (file.toString.endsWith(".class")) {
+                println("wtf file", file.toString)
+                if (file.toString.endsWith(".class") || file.toString.endsWith(".sig")) {
+                  println("nice", file.toString)
                   val loc = root.relativize(file).toString
                   entries.put(loc, UncompressedEntry(file))
                 }
@@ -68,7 +82,8 @@ object Index {
           val jarEntries = jar.entries()
           while (jarEntries.hasMoreElements) {
             val jarEntry = jarEntries.nextElement()
-            if (jarEntry.getName.endsWith(".class") && !jarEntry.getName.startsWith("META-INF")) {
+            val useful = jarEntry.getName.endsWith(".class") || jarEntry.getName.endsWith(".sig")
+            if (useful && !jarEntry.getName.startsWith("META-INF")) {
               val loc = jarEntry.getName
               entries.put(loc, CompressedEntry(jar, jarEntry))
               val parts = jarEntry.getName.split("/").toList.dropRight(1)

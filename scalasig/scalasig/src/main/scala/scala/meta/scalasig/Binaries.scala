@@ -25,7 +25,7 @@ object Binaries {
         // NOTE: nio.file.Path.compareTo is file system specific,
         // and the behavior is different on windows vs. unix
         .sortBy(_.toString.toLowerCase)
-        .foreach(path => fn(path))
+        .foreach { path => fn(path) }
     } else {
       if (path.toString.endsWith(".jar")) {
         // NOTE: Can't use nio.Files.walk because nio.FileSystems

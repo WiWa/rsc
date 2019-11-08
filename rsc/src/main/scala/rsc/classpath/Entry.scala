@@ -9,17 +9,29 @@ import java.util.zip._
 import rsc.pretty._
 
 sealed trait Entry extends Pretty {
+
   def printStr(p: Printer): Unit = PrettyEntry.str(p, this)
+
   def printRepl(p: Printer): Unit = PrettyEntry.repl(p, this)
 }
 
 case class PackageEntry() extends Entry
 
 sealed trait FileEntry extends Entry {
+
   def openStream(): InputStream
+
+  def path: Path
+
+  def isClassfile: Boolean = path.toString.endsWith(".class")
+
+  def isSigfile: Boolean = path.toString.endsWith(".sig")
 }
 
-case class UncompressedEntry(path: Path) extends FileEntry {
+case class UncompressedEntry(override val path: Path) extends FileEntry {
+
+  def pathString: String = path.toString
+
   def openStream(): InputStream = {
     val stream = Files.newInputStream(path)
     new BufferedInputStream(stream)
@@ -27,6 +39,9 @@ case class UncompressedEntry(path: Path) extends FileEntry {
 }
 
 case class CompressedEntry(jar: JarFile, entry: ZipEntry) extends FileEntry {
+
+  def path: Path = Paths.get(jar.getName)
+
   def openStream(): InputStream = {
     jar.getInputStream(entry)
   }
