@@ -3,6 +3,7 @@
 // NOTE: This file has been partially copy/pasted from scalameta/scalameta.
 package rsc.classpath
 
+import java.net.URL
 import java.nio.file._
 import java.util.HashMap
 import rsc.classpath.javacp._
@@ -62,34 +63,28 @@ final class Classpath private (index: Index) extends AutoCloseable {
             case entry: FileEntry =>
               val binary = {
                 val stream = entry.openStream()
-                try BytesBinary(entry.str, stream.readAllBytes())
-                finally stream.close()
-              }
-              println("CP")
-              println(entry.path.toString)
-              var sss = false
-              val payload = if (entry.isSigfile) {
-                sss = true
-                println("ISSIG")
-                val filename = entry.path.toString
                 try {
-                  val scalasig = ScalasigCodec.fromBytes(filename, "", binary.bytes)
-                  Scalacp.parse(scalasig, index)
-                } catch {
-                  case ex: Throwable =>
-                    crash(filename)
+                  if (entry.isSigfile) {
+                    entry match {
+                      case b: UncompressedEntry =>
+                        PathBinary(b.path)
+                      case b: CompressedEntry =>
+                        UriBinary(b.jar, b.entry)
+                    }
+                  } else {
+                    BytesBinary(entry.str, stream.readAllBytes())
+                  }
                 }
-              } else {
-                Scalasig.fromBinary(binary) match {
-                  case FailedClassfile(_, cause) => crash(cause)
-                  case FailedScalasig(_, _, cause) => crash(cause)
-                  case EmptyScalasig(_, Classfile(_, _, JavaPayload(node))) => Javacp.parse(node, index)
-                  case EmptyScalasig(_, Classfile(name, _, _)) => crash(name)
-                  case ParsedScalasig(_, _, scalasig) => Scalacp.parse(scalasig, index)
+                finally {
+                  stream.close()
                 }
               }
-              if (sss) {
-                payload.foreach(info => println("s", info.symbol))
+              val payload = Scalasig.fromBinary(binary) match {
+                case FailedClassfile(_, cause) => crash(cause)
+                case FailedScalasig(_, _, cause) => crash(cause)
+                case EmptyScalasig(_, Classfile(_, _, JavaPayload(node))) => Javacp.parse(node, index)
+                case EmptyScalasig(_, Classfile(name, _, _)) => crash(name)
+                case ParsedScalasig(_, _, scalasig) => Scalacp.parse(scalasig, index)
               }
               payload.foreach(info => infos.put(info.symbol, info))
           }

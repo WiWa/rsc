@@ -19,29 +19,13 @@ case class Classfile(name: String, source: String, payload: Payload) {
 object Classfile {
   def fromBinary(binary: Binary): ClassfileResult = {
     try {
-      binary match {
-        case b@PathBinary(path) if path.toString.endsWith(".sig") =>
-          val pathStr = b.path.toString
-          val stream = b.openStream()
-          val bytes = try {
-            val baos = new ByteArrayOutputStream()
-            val buf = new Array[Byte](1024)
-            var len = stream.read(buf)
-            while (len != -1) {
-              baos.write(buf, 0, len)
-              len = stream.read(buf)
-            }
-            baos.toByteArray
-          } finally stream.close()
-
-          ParsedClassfile(binary, Classfile(
-            pathStr.stripSuffix(".sig"),
-            pathStr,
-            ScalaPayload(bytes)
-          ))
-        case _ =>
-          val classfile = ClassfileCodec.fromBinary(binary)
-          ParsedClassfile(binary, classfile)
+      if (binary.isSig) {
+        val bytes = SigUtils.readBinaryBytes(binary)
+        val (name, source) = SigUtils.getNameSource(binary)
+        ParsedClassfile(binary, Classfile(name, source, ScalaPayload(bytes)))
+      } else {
+        val classfile = ClassfileCodec.fromBinary(binary)
+        ParsedClassfile(binary, classfile)
       }
     } catch {
       case ex: Throwable =>
