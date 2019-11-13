@@ -9,7 +9,8 @@ final case class Settings(
     ins: List[Path] = Nil,
     quiet: Boolean = false,
     saveOutput: Boolean = false,
-    classfiles: ClassfilesPath = ClassfilesPath(None, None)
+    classfiles: ClassfilesPath = ClassfilesPath(None, None),
+    allowDifferentKeys: Boolean = false
 ) extends SettingsBase
 
 object Settings {
@@ -21,6 +22,8 @@ object Settings {
       args match {
         case "--" +: rest =>
           loop(settings, false, rest)
+        case "--allow-different-keys" +: rest if allowOptions =>
+          loop(settings.copy(allowDifferentKeys = true), true, rest)
         case "--classfiles" +: rsc_path +: nsc_path +: Nil =>
           val rsc_files = SettingsBase.pathsFor(rsc_path)
           val nsc_files = SettingsBase.pathsFor(nsc_path)

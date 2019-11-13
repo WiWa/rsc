@@ -36,33 +36,44 @@ class Checker(settings: Settings, nscResults: List[Path], rscResults: List[Path]
     val nscSigs = Scalasigs.list(nscResults: _*).flatMap(resultSyms).toMap
     val rscSigs = Scalasigs.list(rscResults: _*).flatMap(resultSyms).toMap
 
-    assert(nscSigs.keySet == rscSigs.keySet)
+    println(nscSigs.keysIterator.take(10).toList)
+    println(rscSigs.keysIterator.take(10).toList)
+
+    val intersection =  nscSigs.keySet.intersect(rscSigs.keySet)
+
+    if (!settings.allowDifferentKeys)
+      assert(nscSigs.keySet == rscSigs.keySet)
+    else {
+      println(s"Size of Scalac sigs: ${nscSigs.size}")
+      println(s"Size of Rsc sigs: ${rscSigs.size}")
+      println(s"Size of intersection: ${intersection.size}")
+    }
 
     val nscTexts = mutable.ListBuffer.empty[String]
     val rscTexts = mutable.ListBuffer.empty[String]
 
-    nscSigs.foreach {
-      case (k, nscSyms) =>
-        val rscSyms = rscSigs(k)
+    intersection.foreach { k =>
+      val nscSyms = nscSigs(k)
+      val rscSyms = rscSigs(k)
 
-        val nscSymStrs = nscSyms.mapValues(_.toString)
-        val rscSymStrs = rscSyms.mapValues(_.toString)
+      val nscSymStrs = nscSyms.mapValues(_.toString)
+      val rscSymStrs = rscSyms.mapValues(_.toString)
 
-        if (settings.saveOutput) {
-          nscTexts.prepend(nscSymStrs.mkString("\n"))
-          rscTexts.prepend(rscSymStrs.mkString("\n"))
+      if (settings.saveOutput) {
+        nscTexts.prepend(nscSymStrs.mkString("\n"))
+        rscTexts.prepend(rscSymStrs.mkString("\n"))
+      }
+
+      val relevant_ids = (nscSymStrs.keySet ++ rscSymStrs.keySet).toList.sorted
+
+      relevant_ids.foreach { id =>
+        val nscString = nscSymStrs.getOrElse(id, "")
+        val rscString = rscSymStrs.getOrElse(id, "")
+
+        if (nscString != rscString) {
+          problems += DifferentProblem(s"$k: $id", nscString, rscString)
         }
-
-        val relevant_ids = (nscSymStrs.keySet ++ rscSymStrs.keySet).toList.sorted
-
-        relevant_ids.foreach { id =>
-          val nscString = nscSymStrs.getOrElse(id, "")
-          val rscString = rscSymStrs.getOrElse(id, "")
-
-          if (nscString != rscString) {
-            problems += DifferentProblem(s"$k: $id", nscString, rscString)
-          }
-        }
+      }
     }
 
     if (settings.saveOutput) {
