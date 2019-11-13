@@ -23,9 +23,9 @@ sealed trait FileEntry extends Entry {
 
   def path: Path
 
-  def isClassfile: Boolean = path.toString.endsWith(".class")
+  def isClassfile: Boolean
 
-  def isSigfile: Boolean = path.toString.endsWith(".sig")
+  def isSigfile: Boolean
 }
 
 case class UncompressedEntry(override val path: Path) extends FileEntry {
@@ -36,6 +36,10 @@ case class UncompressedEntry(override val path: Path) extends FileEntry {
     val stream = Files.newInputStream(path)
     new BufferedInputStream(stream)
   }
+
+  def isClassfile: Boolean = path.toString.endsWith(".class")
+
+  def isSigfile: Boolean = path.toString.endsWith(".sig")
 }
 
 case class CompressedEntry(jar: JarFile, entry: ZipEntry) extends FileEntry {
@@ -45,4 +49,8 @@ case class CompressedEntry(jar: JarFile, entry: ZipEntry) extends FileEntry {
   def openStream(): InputStream = {
     jar.getInputStream(entry)
   }
+
+  def isClassfile: Boolean = entry.getName.endsWith(".class")
+
+  def isSigfile: Boolean = entry.getName.endsWith(".sig")
 }

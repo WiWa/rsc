@@ -53,9 +53,9 @@ object Index {
                   file: Path,
                   attrs: BasicFileAttributes
               ): FileVisitResult = {
-                println("wtf file", file.toString)
+//                println("wtf file", file.toString)
                 if (file.toString.endsWith(".class") || file.toString.endsWith(".sig")) {
-                  println("nice", file.toString)
+//                  println("nice", file.toString)
                   val loc = root.relativize(file).toString
                   entries.put(loc, UncompressedEntry(file))
                 }

@@ -45,11 +45,11 @@ final class Classpath private (index: Index) extends AutoCloseable {
 
   private def load(sym: String): Unit = {
     val info = infos.get(sym)
-    println("load", sym)
+//    println("load", sym)
     if (info == null) {
-      println("nul")
+//      println("nul")
       if (sym.hasLoc) {
-        println("hasloc")
+//        println("hasloc")
         if (sym.metadataLoc.exists(loc => index.contains(loc))) {
           index.get(sym.metadataLoc) match {
             case PackageEntry() =>
