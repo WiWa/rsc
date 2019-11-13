@@ -5,3 +5,4 @@ package rsc.settings
 sealed trait Artifact
 case object ArtifactSemanticdb extends Artifact
 case object ArtifactScalasig extends Artifact
+case object ArtifactSigfile extends Artifact

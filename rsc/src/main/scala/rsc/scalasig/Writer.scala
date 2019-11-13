@@ -20,14 +20,16 @@ final class Writer private (settings: Settings, reporter: Reporter, infos: Infos
   private val done = mutable.HashSet[String]()
 
   def write(outline: Outline): Unit = {
-    if (!settings.artifacts.contains(ArtifactScalasig)) return
+    val writeClassfile = settings.artifacts.contains(ArtifactScalasig)
+    val writeSigfile = settings.artifacts.contains(ArtifactSigfile)
+    if (!(writeClassfile || writeSigfile)) return
+
     val sym = outline.id.sym
     val companionSym = {
       val desc = sym.desc
       if (desc.isTerm) Symbols.Global(sym.owner, d.Type(desc.value))
       else Symbols.Global(sym.owner, d.Term(desc.value))
     }
-    val moduleSym = if (sym.desc.isTerm) sym else companionSym
 
     if (done(sym)) return
     val pickle = Pickle(settings, mtab, sym, companionSym)
@@ -40,15 +42,26 @@ final class Writer private (settings: Settings, reporter: Reporter, infos: Infos
 
     val scalasig = pickle.toScalasig
     val classfile = scalasig.toClassfile
-    val path = Paths.get(classfile.name + ".class")
-    output.write(path, classfile.toBinary)
+    if (writeSigfile) {
+      classfile.payload match {
+        case payload: ScalaPayload =>
+          val path = Paths.get(classfile.name + ".sig")
+          output.write(path, payload.scalasigBytes)
 
-    pickle.history.modules.foreach { moduleSym =>
-      val markerPath = Paths.get(moduleSym.bytecodeLoc)
-      val markerName = markerPath.toString.stripSuffix(".class")
-      val markerSource = classfile.source
-      val markerClassfile = Classfile(markerName, markerSource, NoPayload)
-      output.write(markerPath, markerClassfile.toBinary)
+        case _ => ()
+      }
+    }
+    if (writeClassfile) {
+      val path = Paths.get(classfile.name + ".class")
+      output.write(path, classfile.toBinary)
+
+      pickle.history.modules.foreach { moduleSym =>
+        val markerPath = Paths.get(moduleSym.bytecodeLoc)
+        val markerName = markerPath.toString.stripSuffix(".class")
+        val markerSource = classfile.source
+        val markerClassfile = Classfile(markerName, markerSource, NoPayload)
+        output.write(markerPath, markerClassfile.toBinary)
+      }
     }
   }
 

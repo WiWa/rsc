@@ -40,6 +40,8 @@ object Settings {
               ArtifactSemanticdb
             case "scalasig" =>
               ArtifactScalasig
+            case "sigfile" =>
+              ArtifactSigfile
             case other =>
               println(s"unknown artifact $other")
               return loop(settings, true, rest)
