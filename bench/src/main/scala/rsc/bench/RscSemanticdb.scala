@@ -14,6 +14,6 @@ import org.openjdk.jmh.annotations.Mode._
 class RscSemanticdb extends RscBenchmark {
   @Benchmark
   def run(bs: BenchmarkState): Unit = {
-    benchCompiler("-Ystop-after:semanticdb", "-cp", bs.rscDeps, bs.files)
+    benchCompiler("-Ystop-after:semanticdb", "-artifacts", "semanticdb", "-cp", bs.rscDeps, bs.files)
   }
 }
