@@ -6,6 +6,7 @@ lazy val V = new {
   val scalametaScalacPlugin = "4.2.5"
   val scalatest = "3.0.5"
 }
+cancelable.in(Global) := true
 
 addCommandAlias("ci-fmt", ui.ciFmt)
 addCommandAlias("ci-fast", ui.ciFast)
@@ -31,6 +32,7 @@ addCommandAlias("benchSemanticdb", ui.benchSemanticdb)
 addCommandAlias("benchSigfile", ui.benchSigfile)
 addCommandAlias("benchScalasig", ui.benchScalasig)
 addCommandAlias("benchScalac", ui.benchScalac)
+addCommandAlias("benchYoutline", ui.benchYoutline)
 addCommandAlias("publish", ui.publish)
 addCommandAlias("publishLocal", ui.publishLocal)
 addCommandAlias("publishSigned", ui.publishSigned)

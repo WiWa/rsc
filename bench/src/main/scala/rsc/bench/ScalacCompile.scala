@@ -14,13 +14,17 @@ import scala.tools.nsc.reporters._
 @Warmup(iterations = 5, time = 10, timeUnit = TimeUnit.SECONDS)
 @Measurement(iterations = 5, time = 10, timeUnit = TimeUnit.SECONDS)
 @Fork(value = 1, jvmArgs = Array("-Xms4G", "-Xmx4G"))
-class ScalacCompile {
+@State(Scope.Benchmark)
+class ScalacCompile() {
+
+  var settings = new Settings()
+
   @Benchmark
   def run(bs: BenchmarkState): Unit = {
-    val settings = new Settings
     settings.outdir.value = Files.createTempDirectory("scalac_").toString
     settings.classpath.value = bs.scalacDeps
     settings.usejavacp.value = false
+    settings.fatalWarnings.value = false
     val reporter = new StoreReporter
     val global = Global(settings, reporter)
     val run = new global.Run
